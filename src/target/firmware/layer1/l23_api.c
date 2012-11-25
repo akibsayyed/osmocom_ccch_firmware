@@ -54,7 +54,39 @@
 #define L3_MSG_DATA 200
 #define L3_MSG_SIZE (L3_MSG_HEAD + sizeof(struct l1ctl_hdr) + L3_MSG_DATA)
 
+//added queue details date 24nov12
+struct llist_head      l2_queue_for_l1;
+
+
+
 void (*l1a_l23_tx_cb)(struct msgb *msg) = NULL;
+void receive_l1_from_l2(struct msgb *msg);
+
+void init_queue()
+{
+	INIT_LLIST_HEAD(&l2_queue_for_l1);
+}
+message_enqueue(struct msgb *msg)
+{
+msgb_enqueue(&l2_queue_for_l1, msg);
+}
+
+message_dequeue()
+{
+struct msgb *msg;
+msg=msgb_dequeue(&l2_queue_for_l1);
+printf("poped queue -%s",msg->data);
+}
+
+
+
+void receive_l1_from_l2(struct msgb *msg)
+{
+//l23api.c
+	message_enqueue(msg);
+
+}
+//till here 24nov12
 
 void l1_queue_for_l2(struct msgb *msg)
 {
@@ -63,7 +95,10 @@ void l1_queue_for_l2(struct msgb *msg)
 		return;
 	}
 	/* forward via serial for now */
-	sercomm_sendmsg(SC_DLCI_L1A_L23, msg);
+	receive_l2_from_l1(msg);
+	//sercomm_sendmsg(SC_DLCI_L1A_L23, msg);
+
+sendl1l2msg(msg);//send to l1l2interface.c
 }
 
 enum mf_type {
@@ -443,7 +478,7 @@ static void l1ctl_rx_reset_req(struct msgb *msg)
 		l1ctl_tx_reset(L1CTL_RESET_CONF, reset_req->type);
 		sched_gsmtime_reset();
 		break;
-	default:
+	default:receive_l1_from_l2:
 		printf("unknown L1CTL_RESET_REQ type\n");
 		break;
 	}
