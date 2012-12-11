@@ -25,7 +25,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <errno.h>
-
+#include <debug.h>
 #include <arpa/inet.h>
 
 #include <l1ctl_proto.h>
@@ -48,7 +48,7 @@
 #include <osmocom/bb/common/logging.h>
 #include <osmocom/codec/codec.h>
 
-extern struct gsmtap_inst *gsmtap_inst;
+//extern struct gsmtap_inst *gsmtap_inst;
 
 static struct msgb *osmo_l1_alloc(uint8_t msg_type)
 {
@@ -177,10 +177,11 @@ static int rx_ph_data_ind(struct osmocom_ms *ms, struct msgb *msg)
 
 	gsm_fn2gsmtime(&tm, ntohl(dl->frame_nr));
 	rsl_dec_chan_nr(dl->chan_nr, &chan_type, &chan_ss, &chan_ts);
-	DEBUGP(DL1C, "%s (%.4u/%.2u/%.2u) %d dBm: %s\n",
-		rsl_chan_nr_str(dl->chan_nr), tm.t1, tm.t2, tm.t3,
-		(int)dl->rx_level-110,
-		osmo_hexdump(ccch->data, sizeof(ccch->data)));
+	//puts("inside data_ind");
+//	printf( "%s (%.4u/%.2u/%.2u) %d dBm: %s\n",
+	//	rsl_chan_nr_str(dl->chan_nr), tm.t1, tm.t2, tm.t3,
+	//	(int)dl->rx_level-110,
+	//	osmo_hexdump(ccch->data, sizeof(ccch->data)));
 
 	meas->last_fn = ntohl(dl->frame_nr);
 	meas->frames++;
@@ -241,10 +242,10 @@ printf("Dropping frame with %u bit errors\n", dl->num_biterr);
 	}
 
 	/* send CCCH data via GSMTAP */
-	gsmtap_chan_type = chantype_rsl2gsmtap(chan_type, dl->link_id);
-	gsmtap_send(gsmtap_inst, ntohs(dl->band_arfcn), chan_ts,
-		    gsmtap_chan_type, chan_ss, tm.fn, dl->rx_level-110,
-		    dl->snr, ccch->data, sizeof(ccch->data));
+	//gsmtap_chan_type = chantype_rsl2gsmtap(chan_type, dl->link_id);
+	//gsmtap_send(gsmtap_inst, ntohs(dl->band_arfcn), chan_ts,
+	//	    gsmtap_chan_type, chan_ss, tm.fn, dl->rx_level-110,
+	//	    dl->snr, ccch->data, sizeof(ccch->data));
 
 	/* determine LAPDm entity based on SACCH or not */
 	if (dl->link_id & 0x40)
@@ -307,9 +308,9 @@ int l1ctl_tx_data_req(struct osmocom_ms *ms, struct msgb *msg,
 
 	/* send copy via GSMTAP */
 	rsl_dec_chan_nr(chan_nr, &chan_type, &chan_ss, &chan_ts);
-	gsmtap_chan_type = chantype_rsl2gsmtap(chan_type, link_id);
-	gsmtap_send(gsmtap_inst, 0|0x4000, chan_ts, gsmtap_chan_type,
-		    chan_ss, 0, 127, 255, msg->l2h, msgb_l2len(msg));
+	//gsmtap_chan_type = chantype_rsl2gsmtap(chan_type, link_id);
+	//gsmtap_send(gsmtap_inst, 0|0x4000, chan_ts, gsmtap_chan_type,
+	//	    chan_ss, 0, 127, 255, msg->l2h, msgb_l2len(msg));
 
 	/* prepend uplink info header */
 	l1i_ul = (struct l1ctl_info_ul *) msgb_push(msg, sizeof(*l1i_ul));
@@ -341,6 +342,7 @@ int l1ctl_tx_fbsb_req(struct osmocom_ms *ms, uint16_t arfcn,
 
 	req = (struct l1ctl_fbsb_req *) msgb_put(msg, sizeof(*req));
 	req->band_arfcn = htons(osmo_make_band_arfcn(ms, arfcn));
+	//printf("arfcn=%u",req->band_arfcn);
 	req->timeout = htons(timeout);
 	/* Threshold when to consider FB_MODE1: 4kHz - 1kHz */
 	req->freq_err_thresh1 = htons(11000 - 1000);
@@ -644,7 +646,7 @@ static int rx_l1_sim_conf(struct osmocom_ms *ms, struct msgb *msg)
 	msgb_pull(msg, sizeof(struct l1ctl_hdr));
 	msg->l1h = NULL;
 
-	sim_apdu_resp(ms, msg);
+	//sim_apdu_resp(ms, msg);
 	
 	return 0;
 }
@@ -773,13 +775,13 @@ static int rx_l1_traffic_ind(struct osmocom_ms *ms, struct msgb *msg)
 	msg->l2h = dl->payload;
 	ti = (struct l1ctl_traffic_ind *) msg->l2h;
 
-	memset(fr, 0x00, 33);
-	fr[0] = 0xd0;
-	for (i = 0; i < 260; i++) {
-		di = gsm610_bitorder[i];
-		si = (i > 181) ? i + 4 : i;
-		msb_set_bit(fr, 4 + di, msb_get_bit(ti->data, si));
-        }
+	//memset(fr, 0x00, 33);
+	//fr[0] = 0xd0;
+	//for (i = 0; i < 260; i++) {
+	//	di = gsm610_bitorder[i];
+	//	si = (i > 181) ? i + 4 : i;
+	//	msb_set_bit(fr, 4 + di, msb_get_bit(ti->data, si));
+     //   }
 	memcpy(ti->data, fr, 33);
 
 	DEBUGP(DL1C, "TRAFFIC IND (%s)\n", osmo_hexdump(ti->data, 33));
@@ -913,34 +915,43 @@ int l1ctl_recv(struct osmocom_ms *ms, struct msgb *msg)
 
 	switch (l1h->msg_type) {
 	case L1CTL_FBSB_CONF:
+		puts("fbsb\n;");
 		rc = rx_l1_fbsb_conf(ms, msg);
+
 		msgb_free(msg);
 		break;
 	case L1CTL_DATA_IND:
 		rc = rx_ph_data_ind(ms, msg);
+	//	puts("data\n;");
 		break;
 	case L1CTL_DATA_CONF:
 		rc = rx_ph_data_conf(ms, msg);
+	//	puts("dataconf\n;");
 		break;
 	case L1CTL_RESET_IND:
 	case L1CTL_RESET_CONF:
 		rc = rx_l1_reset(ms);
+	//	puts("reset\n;");
 		msgb_free(msg);
 		break;
 	case L1CTL_PM_CONF:
 		rc = rx_l1_pm_conf(ms, msg);
+	//	puts("pm\n;");
 		if (l1h->flags & L1CTL_F_DONE)
 			osmo_signal_dispatch(SS_L1CTL, S_L1CTL_PM_DONE, ms);
 		msgb_free(msg);
 		break;
 	case L1CTL_RACH_CONF:
+	//	puts("rach\n;");
 		rc = rx_l1_rach_conf(ms, msg);
 		break;
 	case L1CTL_CCCH_MODE_CONF:
+	//	puts("ccch\n;");
 		rc = rx_l1_ccch_mode_conf(ms, msg);
 		msgb_free(msg);
 		break;
 	case L1CTL_TCH_MODE_CONF:
+	//	puts("tch\n;");
 		rc = rx_l1_tch_mode_conf(ms, msg);
 		msgb_free(msg);
 		break;
@@ -952,6 +963,7 @@ int l1ctl_recv(struct osmocom_ms *ms, struct msgb *msg)
 		msgb_free(msg);
 		break;
 	case L1CTL_TRAFFIC_IND:
+		puts("trf\n;");
 		rc = rx_l1_traffic_ind(ms, msg);
 		break;
 	case L1CTL_TRAFFIC_CONF:

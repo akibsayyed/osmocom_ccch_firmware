@@ -305,7 +305,7 @@ static int gsm48_rx_paging_p1(struct msgb *msg, struct osmocom_ms *ms)
 
 	if (mi_type != GSM_MI_TYPE_NONE) {
 		gsm48_mi_to_string(mi_string, sizeof(mi_string), &pag->data[1], len1);
-		LOGP(DRR, LOGL_NOTICE, "Paging1: %s chan %s to %s M(%s) \n",
+	printf( "Paging1: %s chan %s to %s M(%s) \n",
 		     pag_print_mode(pag->pag_mode),
 		     chan_need(pag->cneed1),
 		     mi_type_to_string(mi_type),
@@ -326,7 +326,7 @@ static int gsm48_rx_paging_p1(struct msgb *msg, struct osmocom_ms *ms)
 		}
 
 		gsm48_mi_to_string(mi_string, sizeof(mi_string), &pag->data[2 + len1 + 2], len2);
-		LOGP(DRR, LOGL_NOTICE, "Paging2: %s chan %s to %s M(%s) \n",
+		printf( "Paging2: %s chan %s to %s M(%s) \n",
 		     pag_print_mode(pag->pag_mode),
 		     chan_need(pag->cneed2),
 		     mi_type_to_string(mi_type),
@@ -482,7 +482,8 @@ static int signal_cb(unsigned int subsys, unsigned int signal,
 	case S_L1CTL_RESET:
 		ms = signal_data;
 		layer3_app_reset();
-		return l1ctl_tx_fbsb_req(ms, ms->test_arfcn,
+		//printf("arfcn=%u",ms->test_arfcn);
+		return l1ctl_tx_fbsb_req(ms, 116,
 		                         L1CTL_FBSB_F_FB01SB, 100, 0,
 		                         CCCH_MODE_NONE);
 		break;
@@ -493,8 +494,11 @@ static int signal_cb(unsigned int subsys, unsigned int signal,
 
 int l23_app_init(struct osmocom_ms *ms)
 {
+	//puts("CCCTP1.0");
 	osmo_signal_register_handler(SS_L1CTL, &signal_cb, NULL);
+	//puts("CCCTP1.1");
 	l1ctl_tx_reset_req(ms, L1CTL_RES_T_FULL);
+	//puts("CCCTP1.2");
 	return layer3_init(ms);
 }
 

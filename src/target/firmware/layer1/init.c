@@ -39,27 +39,30 @@
 void layer1_init(void)
 {
 #ifndef CONFIG_TX_ENABLE
-	printf("\n\nTHIS FIRMWARE WAS COMPILED WITHOUT TX SUPPORT!!!\n\n");
+	puts("\n\nTHIS FIRMWARE WAS COMPILED WITHOUT TX SUPPORT!!!\n\n");
 #endif
+
 
 	/* initialize asynchronous part of L1 */
 	l1a_init();
 	/* initialize TDMA Frame IRQ driven synchronous L1 */
+	//puts("INITTP1\n");--working
 	l1s_init();
 	/* power up the DSP */
+	//puts("INITTP2\n");--working
 	dsp_power_on();
 
 	/* Initialize TPU, TSP and TRF drivers */
 	tpu_init();
 	tsp_init();
-
+	//puts("INITTP3\n");--working
 	rffe_init();
 
 #if 0 /* only if RX TPU window is disabled! */
 	/* Put TWL3025 in downlink mode (includes calibration) */
 	twl3025_downlink(1, 1000);
 #endif
-
+	//puts("INITTP4\n");--working
 	/* issue the TRF and TWL initialization sequence */
 	tpu_enq_sleep();
 	tpu_enable(1);
@@ -67,7 +70,8 @@ void layer1_init(void)
 
 	/* Disable RTC interrupt as it causes lost TDMA frames */
 	irq_disable(IRQ_RTC_TIMER);
-
+	//puts("INITTP5\n");--working
 	/* inform l2 and upwards that we are ready for orders */
 	l1ctl_tx_reset(L1CTL_RESET_IND, L1CTL_RES_T_BOOT);
+	//puts("INITTP6\n");--working
 }

@@ -61,7 +61,7 @@ static int rslms_rx_udata_ind(struct msgb *msg, struct osmocom_ms *ms)
 	struct abis_rsl_rll_hdr *rllh = msgb_l2(msg);
 	struct tlv_parsed tv;
 	int rc = 0;
-	
+
 	DEBUGP(DRSL, "RSLms UNIT DATA IND chan_nr=0x%02x link_id=0x%02x\n",
 		rllh->chan_nr, rllh->link_id);
 
@@ -74,6 +74,7 @@ static int rslms_rx_udata_ind(struct msgb *msg, struct osmocom_ms *ms)
 
 	if (rllh->chan_nr == RSL_CHAN_PCH_AGCH) {
 		rc = gsm48_rx_ccch(msg, ms);
+
 	} else if (rllh->chan_nr == RSL_CHAN_BCCH) {
 		rc = gsm48_rx_bcch(msg, ms);
 	}
@@ -126,7 +127,7 @@ static int layer3_from_layer2(struct msgb *msg, struct lapdm_entity *le, void *c
 	struct osmocom_ms *ms = ctx;
 	struct abis_rsl_common_hdr *rslh = msgb_l2(msg);
 	int rc = 0;
-
+	//puts("test-rslmssendmsg");
 	switch (rslh->msg_discr & 0xfe) {
 	case ABIS_RSL_MDISC_RLL:
 		rc = rslms_rx_rll(msg, ms);

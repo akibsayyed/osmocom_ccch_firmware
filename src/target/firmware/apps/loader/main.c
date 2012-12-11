@@ -439,6 +439,9 @@ static void key_handler(enum key_codes code, enum key_states state)
 		puts("Resetting due to keypress.\n");
 		device_reset();
 		break;
+	case KEY_MENU:
+		device_jump((void *)0x10000);
+		break;
 	default:
 		break;
 	}

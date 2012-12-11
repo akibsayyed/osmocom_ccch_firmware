@@ -1,10 +1,10 @@
 
 
 # List of all supported boards (meant to be overridden on command line)
-BOARDS?=compal_e88 compal_e86 compal_e99 se_j100 gta0x pirelli_dpl10
+BOARDS?=compal_e88 #compal_e86 compal_e99 se_j100 gta0x pirelli_dpl10
 
 # List of all applications (meant to be overridden on command line)
-APPLICATIONS?=hello_world compal_dsp_dump layer1 loader chainload rssi
+APPLICATIONS?=mob_app #rssi#loader#hello_world compal_dsp_dump layer1 loader chainload rssi
 
 # Framebuffer support, board specific drivers
 # 	
@@ -38,7 +38,7 @@ pirelli_dpl10_ENVIRONMENTS=highram
 # Compal Generic
 
 compal_COMMON_OBJS=$(calypso_COMMON_OBJS) board/compal/rffe_dualband.o board/compal/rf_power.o
-compal_COMMON_ENVIRONMENTS=compalram highram
+#compal_COMMON_ENVIRONMENTS=compalram highram
 
 compalram_LDS=board/compal/ram.lds
 compalram_OBJS=board/compal/start.ram.o board/compal/exceptions_redirected.o board/compal/handlers.o
@@ -49,7 +49,7 @@ highram_OBJS=board/compal/start.ram.o board/compal/exceptions_redirected.o board
 # Compal E88
 
 compal_e88_OBJS=$(compal_COMMON_OBJS) board/compal_e88/init.o battery/compal_e88.o $(FB_e88_OBJS)
-compal_e88_ENVIRONMENTS=$(compal_COMMON_ENVIRONMENTS) e88loader e88flash
+compal_e88_ENVIRONMENTS=e88flash #$(compal_COMMON_ENVIRONMENTS) e88loader 
 
 e88loader_LDS=board/compal_e88/loader.lds
 e88loader_OBJS=board/compal/start.rom.o board/compal/header.o board/compal/exceptions_redirect.o
@@ -78,31 +78,38 @@ se_j100_OBJS=$(compal_COMMON_OBJS) board/se_j100/init.o battery/dummy.o $(FB_j10
 se_j100_ENVIRONMENTS=$(compal_COMMON_ENVIRONMENTS)
 
 # Global include path
-INCLUDES=-Iinclude/ -I../../../include -I../../shared/libosmocore/include
+INCLUDES=-I./include -I../../../include -I../../shared/libosmocore/include -I/opt/arm_test_lab/dietlibc/include -I/opt/arm_test/osmocom-bb/src/host/layer23/include
 
 # Various objects that are currently linked into all applications
 FLASH_OBJS=flash/cfi_flash.o
 ABB_OBJS=abb/twl3025.o
 RF_OBJS=rf/trf6151.o
 
+
+
+COMMON_OBJ_PATH=/opt/test64/osmocom-bb/src/host/layer23/src/common
+COMMON_OBJ=$(COMMON_OBJ_PATH)/l1l2_interface.o $(COMMON_OBJ_PATH)/l1ctl_lapdm_glue.o $(COMMON_OBJ_PATH)/l1ctl.o 
+MISC_OBJ_PATH=/opt/test64/osmocom-bb/src/host/layer23/src/misc
+MISC_OBJ=$(MISC_OBJ_PATH)/app_ccch_scan.o  $(MISC_OBJ_PATH)/rslms.o 
+
 # Objects that go in all applications
-ANY_APP_OBJS+=$(ABB_OBJS) $(RF_OBJS) $(FLASH_OBJS)
-ANY_APP_LIBS+=calypso/libcalypso.a layer1/liblayer1.a lib/libmini.a comm/libcomm.a ../../shared/libosmocore/build-target/src/.libs/libosmocore.a ../../shared/libosmocore/build-target/src/gsm/.libs/libosmogsm.a
+ANY_APP_OBJS+=$(ABB_OBJS) $(RF_OBJS) $(FLASH_OBJS)  $(COMMON_OBJ) $(MISC_OBJ)  /opt/arm_test/osmocom-bb/src/target/firmware/apps/mob_app/talloc.o
+ANY_APP_LIBS+=calypso/libcalypso.a layer1/liblayer1.a lib/libmini.a comm/libcomm.a ../../shared/libosmocore/build-target/src/gsm/.libs/libosmogsm.a /opt/arm_test_lab/dietlibc/bin-arm/dietlibc.a  sys/libsys.a  ../../shared/libosmocore/build-target/src/.libs/libosmocore.a #/opt/test64/osmocom-bb_libosmo_arm/src/shared/libosmocore/build-target/src/.libs/libosmocore.a
 
 # Libraries are defined in subdirectories
 -include calypso/Makefile
 -include layer1/Makefile
 -include comm/Makefile
 -include lib/Makefile
-
+-include sys/Makefile
 # Include rules
 -include Makefile.inc
 
 # Uncomment this line if you want to enable Tx (Transmit) Support.
-#CFLAGS += -DCONFIG_TX_ENABLE
+CFLAGS += -DCONFIG_TX_ENABLE
 
 # Uncomment this line if you want to write to flash.
-#CFLAGS += -DCONFIG_FLASH_WRITE
+CFLAGS += -DCONFIG_FLASH_WRITE
 
 # Uncomment this line if you want to write to flash, including the bootloader.
-#CFLAGS += -DCONFIG_FLASH_WRITE_LOADER
+CFLAGS += -DCONFIG_FLASH_WRITE_LOADER

@@ -27,7 +27,7 @@
 #include <osmocom/bb/common/l1l2_interface.h>
 
 #include <osmocom/core/utils.h>
-
+#include <asm/system.h>
 
 #define _GNU_SOURCE
 #include <unistd.h>
@@ -36,47 +36,76 @@
 #include <stdlib.h>
 
 
-
 ////////////////////////////////////////////
 
 
 #define GSM_L2_LENGTH 256
 #define GSM_L2_HEADROOM 32
-struct llist_head      l1_queue_for_l2;
+
 
 void sendl1l2msg(struct msgb *msg);
 void message_enqueue(struct msgb *msg);
 void message_dequeue();
 void receive_l1_from_l2(struct msgb *msg);
+static int l2l1handler();
 
-message_enqueue(struct msgb *msg)
+ struct llist_head l1_data_queue_for_l2 = LLIST_HEAD_INIT(l1_data_queue_for_l2);
+void initialise_queue()
 {
-msgb_enqueue(&l1_queue_for_l2, msg);
+	//INIT_LLIST_HEAD(&l1_data_queue_for_l2) ;
 }
 
-message_dequeue()
+
+
+
+/*message_enqueue(struct msgb *msg)
+{
+msgb_enqueue(&l1_queue_for_l2, msg);
+}*/
+
+/*message_dequeue()
 {
 struct msgb *msg;
 msg=msgb_dequeue(&l1_queue_for_l2);
 //printf("poped queue -%s",msg->data);
-}
+}*/
 
 void receive_l2_from_l1(struct msgb *msg)
 {
-	message_enqueue( msg);
+	unsigned long flags;
+//puts("test.6\n");--working
+local_firq_save(flags);
+
+//puts("ok going\n");--working
+msgb_enqueue(&l1_data_queue_for_l2, msg);
+//puts("L23APITP5.8\n");
+local_irq_restore(flags);
+//puts("L23APITP5.9\n");
+
 }
-static int layer2_read(struct osmo_fd *fd)
+int l2_l1_handler(struct osmocom_ms *ms)
 {
 	struct msgb *msg;
+	printf("TP1\n");
 	uint16_t len;
 	int rc;
-
+	unsigned long flags;
 	msg = msgb_alloc_headroom(GSM_L2_LENGTH+GSM_L2_HEADROOM, GSM_L2_HEADROOM, "Layer2");
 	if (!msg) {
-		printf( "Failed to allocate msg.\n");
+		printf( "Failed to allocate msg.\n l1l2interface\n");
 		return -ENOMEM;
 	}
-	msg=msgb_dequeue(&l1_queue_for_l2);
+
+
+	//
+	printf("TP2\n");
+	local_firq_save(flags);
+	msg=msgb_dequeue(&l1_data_queue_for_l2);
+	local_irq_restore(flags);
+	printf("TP3\n");
+
+
+	//local_irq_restore(flags);
 	//rc = read(fd->fd, &len, sizeof(len));
 	//if (rc < sizeof(len)) {
 	//	fprintf(stderr, "Layer2 socket failed\n");
@@ -96,7 +125,12 @@ static int layer2_read(struct osmo_fd *fd)
 
 
 	//msg->l1h = msgb_put(msg, len);
-	//rc// = read(fd->fd, msg->l1h, msgb_l1len(msg));
+	//rc// = read(fd->fd, msg->l1h, msgb_l1len(ms	msg = msgb_alloc_headroom(GSM_L2_LENGTH+GSM_L2_HEADROOM, GSM_L2_HEADROOM, "Layer2");
+	//if (!msg) {
+	//	printf( "\nl1l2interface 2 Failed to allocate msg.\n");
+	//	return -ENOMEM;
+//	}
+	//msg=msgb_dequeue(&l1_queue_for_l2);
 	//if (rc != msgb_l1len(msg)) {
 	//	LOGP(DL1C, LOGL_ERROR, "Can not read data: len=%d rc=%d "
 	//	     "errno=%d\n", len, rc, errno);
@@ -105,10 +139,13 @@ static int layer2_read(struct osmo_fd *fd)
 	//}
 
 
-	l1ctl_recv((struct osmocom_ms *) fd->data, msg);
+	l1ctl_recv(ms, msg);
+
 //
 	return 0;
 }
+
+
 
 static int layer2_write(struct osmo_fd *fd, struct msgb *msg)
 {
@@ -118,7 +155,7 @@ static int layer2_write(struct osmo_fd *fd, struct msgb *msg)
 		return -EINVAL;
 
 	//rc = write(fd->fd, msg->data, msg->len);
-	l1a_l23_rx(5,msg);
+
 	//if (rc != msg->len) {
 		//LOGP(DL1C, LOGL_ERROR, "Failed to write data: rc: %d\n", rc);
 		//return rc;
@@ -131,7 +168,7 @@ int layer2_open(struct osmocom_ms *ms, const char *socket_path)
 {
 	int rc;
 	//struct sockaddr_un local;
-	INIT_LLIST_HEAD(&l1_queue_for_l2);
+	//INIT_LLIST_HEAD(&l1_queue_for_l2);
 	//ms->l2_wq.bfd.fd = socket(AF_UNIX, SOCK_STREAM, 0);
 	//if (ms->l2_wq.bfd.fd < 0) {
 	//	fprintf(stderr, "Failed to create unix domain socket.\n");
@@ -151,18 +188,18 @@ int layer2_open(struct osmocom_ms *ms, const char *socket_path)
 	//	return rc;
 	//}
 
-	osmo_wqueue_init(&ms->l2_wq, 100);
-	ms->l2_wq.bfd.data = ms;
-	ms->l2_wq.bfd.when = BSC_FD_READ;
-	ms->l2_wq.read_cb = layer2_read;
-	ms->l2_wq.write_cb = layer2_write;
+	//osmo_wqueue_init(&ms->l2_wq, 100);
+	//ms->l2_wq.bfd.data = ms;
+	//ms->l2_wq.bfd.when = BSC_FD_READ;
+	//ms->l2_wq.read_cb = layer2_read;
+	//ms->l2_wq.write_cb = layer2_write;
 
-	rc = osmo_fd_register(&ms->l2_wq.bfd);
-	if (rc != 0) {
-		printf( "Failed to register fd.\n");
-		close(ms->l2_wq.bfd.fd);
-		return rc;
-	}
+	//rc = osmo_fd_register(&ms->l2_wq.bfd);
+	//if (rc != 0) {
+	//	printf( "Failed to register fd.\n");
+	//	close(ms->l2_wq.bfd.fd);
+	//	return rc;
+	//}
 
 	return 0;
 }
@@ -182,22 +219,23 @@ int layer2_close(struct osmocom_ms *ms)
 
 int osmo_send_l1(struct osmocom_ms *ms, struct msgb *msg)
 {
-	uint16_t *len;
+//	uint16_t *len;
 
 	//DEBUGP(DL1C, "Sending: '%s'\n", osmo_hexdump(msg->data, msg->len));
 
-	if (msg->l1h != msg->data)
-		printf( "Message L1 header != Message Data\n");
+//	if (msg->l1h != msg->data)
+//		printf( "Message L1 header != Message Data\n");
 	
 	/* prepend 16bit length before sending */
-	len = (uint16_t *) msgb_push(msg, sizeof(*len));
-	*len = htons(msg->len - sizeof(*len));
+//	len = (uint16_t *) msgb_push(msg, sizeof(*len));
+//	*len = htons(msg->len - sizeof(*len));
 
-	if (osmo_wqueue_enqueue(&ms->l2_wq, msg) != 0) {
-		printf("Failed to enqueue msg.\n");
-		msgb_free(msg);
-		return -1;
-	}
+	l1a_l23_rx(5,msg);
+	//if (osmo_wqueue_enqueue(&ms->l2_wq, msg) != 0) {
+//		printf("Failed to enqueue msg.\n");
+//		msgb_free(msg);
+//		return -1;
+//	}
 
 	return 0;
 }

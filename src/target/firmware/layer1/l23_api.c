@@ -62,16 +62,13 @@ struct llist_head      l2_queue_for_l1;
 void (*l1a_l23_tx_cb)(struct msgb *msg) = NULL;
 void receive_l1_from_l2(struct msgb *msg);
 
-void init_queue()
-{
-	INIT_LLIST_HEAD(&l2_queue_for_l1);
-}
-message_enqueue(struct msgb *msg)
+
+/*message_enqueue_l1(struct msgb *msg)
 {
 msgb_enqueue(&l2_queue_for_l1, msg);
-}
+}*/
 
-message_dequeue()
+/*message_dequeue()
 {
 struct msgb *msg;
 msg=msgb_dequeue(&l2_queue_for_l1);
@@ -83,22 +80,26 @@ printf("poped queue -%s",msg->data);
 void receive_l1_from_l2(struct msgb *msg)
 {
 //l23api.c
-	message_enqueue(msg);
+	message_enqueue_l1(msg);
 
-}
+}*/
 //till here 24nov12
-
+// l1 queue for l2 will be called automatically will call receive l2 from l1 auto in same manner
 void l1_queue_for_l2(struct msgb *msg)
 {
+	//puts("L23APITP5.3\n");--working
 	if (l1a_l23_tx_cb) {
 		l1a_l23_tx_cb(msg);
+		//puts("L23APITP5.4\n");--working
 		return;
 	}
+	//puts("L23APITP5.5\n");--working
+
 	/* forward via serial for now */
 	receive_l2_from_l1(msg);
 	//sercomm_sendmsg(SC_DLCI_L1A_L23, msg);
-
-sendl1l2msg(msg);//send to l1l2interface.c
+	//puts("L23APITP5.6\n");
+//sendl1l2msg(msg);//send to l1l2interface.c
 }
 
 enum mf_type {
@@ -251,6 +252,9 @@ static void l1ctl_rx_fbsb_req(struct msgb *msg)
 
 	printd("Starting FCCH Recognition\n");
 	l1s_fbsb_req(1, sync_req);
+	//while(1)
+	puts("fcch\n");
+
 }
 
 /* receive a L1CTL_DM_EST_REQ from L23 */
@@ -449,11 +453,13 @@ static void l1ctl_rx_pm_req(struct msgb *msg)
 /* Transmit a L1CTL_RESET_IND or L1CTL_RESET_CONF */
 void l1ctl_tx_reset(uint8_t msg_type, uint8_t reset_type)
 {
+	//puts("L23APITP5.1\n");--working
 	struct msgb *msg = l1ctl_msgb_alloc(msg_type);
 	struct l1ctl_reset *reset_resp;
 	reset_resp = (struct l1ctl_reset *)
 				msgb_put(msg, sizeof(*reset_resp));
 	reset_resp->type = reset_type;
+	//puts("L23APITP5.2\n");--working
 
 	l1_queue_for_l2(msg);
 }
@@ -720,6 +726,6 @@ exit_nofree:
 
 void l1a_l23api_init(void)
 {
-	sercomm_register_rx_cb(SC_DLCI_L1A_L23, l1a_l23_rx);
+	//sercomm_register_rx_cb(SC_DLCI_L1A_L23, l1a_l23_rx);
 }
 
