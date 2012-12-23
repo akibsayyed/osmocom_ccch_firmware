@@ -56,7 +56,7 @@ static struct msgb *osmo_l1_alloc(uint8_t msg_type)
 	struct msgb *msg = msgb_alloc_headroom(256, 4, "osmo_l1");
 
 	if (!msg) {
-		LOGP(DL1C, LOGL_ERROR, "Failed to allocate memory.\n");
+	//	LOGP(DL1C, LOGL_ERROR, "Failed to allocate memory.\n");
 		return NULL;
 	}
 
@@ -99,19 +99,19 @@ static int rx_l1_fbsb_conf(struct osmocom_ms *ms, struct msgb *msg)
 	struct osmobb_fbsb_res fr;
 
 	if (msgb_l3len(msg) < sizeof(*dl) + sizeof(*sb)) {
-		LOGP(DL1C, LOGL_ERROR, "FBSB RESP: MSG too short %u\n",
-			msgb_l3len(msg));
+	//	LOGP(DL1C, LOGL_ERROR, "FBSB RESP: MSG too short %u\n",
+	//		msgb_l3len(msg));
 		return -1;
 	}
 
 	dl = (struct l1ctl_info_dl *) msg->l1h;
 	sb = (struct l1ctl_fbsb_conf *) dl->payload;
 
-	LOGP(DL1C, LOGL_INFO, "snr=%04x, arfcn=%u result=%u\n", dl->snr,
-		ntohs(dl->band_arfcn), sb->result);
+//LOGP(DL1C, LOGL_INFO, "snr=%04x, arfcn=%u result=%u\n", dl->snr,
+//		ntohs(dl->band_arfcn), sb->result);
 
 	if (sb->result != 0) {
-		LOGP(DL1C, LOGL_ERROR, "FBSB RESP: result=%u\n", sb->result);
+	//	LOGP(DL1C, LOGL_ERROR, "FBSB RESP: result=%u\n", sb->result);
 		fr.ms = ms;
 		fr.band_arfcn = ntohs(dl->band_arfcn);
 		osmo_signal_dispatch(SS_L1CTL, S_L1CTL_FBSB_ERR, &fr);
@@ -119,8 +119,8 @@ static int rx_l1_fbsb_conf(struct osmocom_ms *ms, struct msgb *msg)
 	}
 
 	gsm_fn2gsmtime(&tm, ntohl(dl->frame_nr));
-	DEBUGP(DL1C, "SCH: SNR: %u TDMA: (%.4u/%.2u/%.2u) bsic: %d\n",
-		dl->snr, tm.t1, tm.t2, tm.t3, sb->bsic);
+	//DEBUGP(DL1C, "SCH: SNR: %u TDMA: (%.4u/%.2u/%.2u) bsic: %d\n",
+	//	dl->snr, tm.t1, tm.t2, tm.t3, sb->bsic);
 	fr.ms = ms;
 	fr.snr = dl->snr;
 	fr.bsic = sb->bsic;
@@ -137,8 +137,8 @@ static int rx_l1_rach_conf(struct osmocom_ms *ms, struct msgb *msg)
 	struct l1ctl_info_dl *dl;
 
 	if (msgb_l2len(msg) < sizeof(*dl)) {
-		LOGP(DL1C, LOGL_ERROR, "RACH CONF: MSG too short %u\n",
-			msgb_l3len(msg));
+	//	LOGP(DL1C, LOGL_ERROR, "RACH CONF: MSG too short %u\n",
+	//		msgb_l3len(msg));
 		msgb_free(msg);
 		return -1;
 	}
@@ -165,8 +165,8 @@ static int rx_ph_data_ind(struct osmocom_ms *ms, struct msgb *msg)
 	struct gsm_time tm;
 
 	if (msgb_l3len(msg) < sizeof(*ccch)) {
-		LOGP(DL1C, LOGL_ERROR, "MSG too short Data Ind: %u\n",
-			msgb_l3len(msg));
+	//	LOGP(DL1C, LOGL_ERROR, "MSG too short Data Ind: %u\n",
+	//		msgb_l3len(msg));
 		msgb_free(msg);
 		return -1;
 	}
@@ -178,7 +178,7 @@ static int rx_ph_data_ind(struct osmocom_ms *ms, struct msgb *msg)
 	gsm_fn2gsmtime(&tm, ntohl(dl->frame_nr));
 	rsl_dec_chan_nr(dl->chan_nr, &chan_type, &chan_ss, &chan_ts);
 	//puts("inside data_ind");
-//	printf( "%s (%.4u/%.2u/%.2u) %d dBm: %s\n",
+	//printf( "%s (%.4u/%.2u/%.2u) %d dBm: %s\n",
 	//	rsl_chan_nr_str(dl->chan_nr), tm.t1, tm.t2, tm.t3,
 	//	(int)dl->rx_level-110,
 	//	osmo_hexdump(ccch->data, sizeof(ccch->data)));
@@ -234,9 +234,9 @@ static int rx_ph_data_ind(struct osmocom_ms *ms, struct msgb *msg)
 	}
 
 	if (dl->fire_crc >= 2) {
-printf("Dropping frame with %u bit errors\n", dl->num_biterr);
-		LOGP(DL1C, LOGL_NOTICE, "Dropping frame with %u bit errors\n",
-			dl->num_biterr);
+//printf("Dropping frame with %u bit errors\n", dl->num_biterr);
+//		LOGP(DL1C, LOGL_NOTICE, "Dropping frame with %u bit errors\n",
+//			dl->num_biterr);
 		msgb_free(msg);
 		return 0;
 	}
@@ -263,6 +263,7 @@ printf("Dropping frame with %u bit errors\n", dl->num_biterr);
 	pp.u.data.link_id = dl->link_id;
 
 	/* send it up into LAPDm */
+	free(msg);
 	return lapdm_phsap_up(&pp.oph, le);
 }
 
@@ -295,17 +296,18 @@ int l1ctl_tx_data_req(struct osmocom_ms *ms, struct msgb *msg,
 	uint8_t chan_type, chan_ts, chan_ss;
 	uint8_t gsmtap_chan_type;
 
-	DEBUGP(DL1C, "(%s)\n", osmo_hexdump(msg->l2h, msgb_l2len(msg)));
+	//DEBUGP(DL1C, "(%s)\n", osmo_hexdump(msg->l2h, msgb_l2len(msg)));
 
 	if (msgb_l2len(msg) > 23) {
-		LOGP(DL1C, LOGL_ERROR, "L1 cannot handle message length "
-			"> 23 (%u)\n", msgb_l2len(msg));
+	//	LOGP(DL1C, LOGL_ERROR, "L1 cannot handle message length "
+	//		"> 23 (%u)\n", msgb_l2len(msg));
 		msgb_free(msg);
 		return -EINVAL;
 	} else if (msgb_l2len(msg) < 23)
-		LOGP(DL1C, LOGL_ERROR, "L1 message length < 23 (%u) "
-			"doesn't seem right!\n", msgb_l2len(msg));
-
+		{
+		//LOGP(DL1C, LOGL_ERROR, "L1 message length < 23 (%u) "
+		//	"doesn't seem right!\n", msgb_l2len(msg));
+		}
 	/* send copy via GSMTAP */
 	rsl_dec_chan_nr(chan_nr, &chan_type, &chan_ss, &chan_ts);
 	//gsmtap_chan_type = chantype_rsl2gsmtap(chan_type, link_id);
@@ -334,7 +336,7 @@ int l1ctl_tx_fbsb_req(struct osmocom_ms *ms, uint16_t arfcn,
 	struct msgb *msg;
 	struct l1ctl_fbsb_req *req;
 
-	LOGP(DL1C, LOGL_INFO, "Sync Req\n");
+	//LOGP(DL1C, LOGL_INFO, "Sync Req\n");
 
 	msg = osmo_l1_alloc(L1CTL_FBSB_REQ);
 	if (!msg)
@@ -363,7 +365,7 @@ int l1ctl_tx_ccch_mode_req(struct osmocom_ms *ms, uint8_t ccch_mode)
 	struct msgb *msg;
 	struct l1ctl_ccch_mode_req *req;
 
-	LOGP(DL1C, LOGL_INFO, "CCCH Mode Req\n");
+	//LOGP(DL1C, LOGL_INFO, "CCCH Mode Req\n");
 
 	msg = osmo_l1_alloc(L1CTL_CCCH_MODE_REQ);
 	if (!msg)
@@ -382,7 +384,7 @@ int l1ctl_tx_tch_mode_req(struct osmocom_ms *ms, uint8_t tch_mode,
 	struct msgb *msg;
 	struct l1ctl_tch_mode_req *req;
 
-	LOGP(DL1C, LOGL_INFO, "TCH Mode Req\n");
+//	LOGP(DL1C, LOGL_INFO, "TCH Mode Req\n");
 
 	msg = osmo_l1_alloc(L1CTL_TCH_MODE_REQ);
 	if (!msg)
@@ -406,7 +408,7 @@ int l1ctl_tx_param_req(struct osmocom_ms *ms, uint8_t ta, uint8_t tx_power)
 	if (!msg)
 		return -1;
 
-	DEBUGP(DL1C, "PARAM Req. ta=%d, tx_power=%d\n", ta, tx_power);
+//	DEBUGP(DL1C, "PARAM Req. ta=%d, tx_power=%d\n", ta, tx_power);
 	ul = (struct l1ctl_info_ul *) msgb_put(msg, sizeof(*ul));
 	req = (struct l1ctl_par_req *) msgb_put(msg, sizeof(*req));
 	req->tx_power = tx_power;
@@ -427,7 +429,7 @@ int l1ctl_tx_crypto_req(struct osmocom_ms *ms, uint8_t algo, uint8_t *key,
 	if (!msg)
 		return -1;
 
-	DEBUGP(DL1C, "CRYPTO Req. algo=%d, len=%d\n", algo, len);
+//	DEBUGP(DL1C, "CRYPTO Req. algo=%d, len=%d\n", algo, len);
 	ul = (struct l1ctl_info_ul *) msgb_put(msg, sizeof(*ul));
 	req = (struct l1ctl_crypto_req *) msgb_put(msg, sizeof(*req) + len);
 	req->algo = algo;
@@ -449,7 +451,7 @@ int l1ctl_tx_rach_req(struct osmocom_ms *ms, uint8_t ra, uint16_t offset,
 	if (!msg)
 		return -1;
 
-	DEBUGP(DL1C, "RACH Req. offset=%d combined=%d\n", offset, combined);
+//	DEBUGP(DL1C, "RACH Req. offset=%d combined=%d\n", offset, combined);
 	ul = (struct l1ctl_info_ul *) msgb_put(msg, sizeof(*ul));
 	req = (struct l1ctl_rach_req *) msgb_put(msg, sizeof(*req));
 	req->ra = ra;
@@ -472,8 +474,8 @@ int l1ctl_tx_dm_est_req_h0(struct osmocom_ms *ms, uint16_t band_arfcn,
 	if (!msg)
 		return -1;
 
-	LOGP(DL1C, LOGL_INFO, "Tx Dedic.Mode Est Req (arfcn=%u, "
-		"chan_nr=0x%02x)\n", band_arfcn, chan_nr);
+//	LOGP(DL1C, LOGL_INFO, "Tx Dedic.Mode Est Req (arfcn=%u, "
+//		"chan_nr=0x%02x)\n", band_arfcn, chan_nr);
 
 	ul = (struct l1ctl_info_ul *) msgb_put(msg, sizeof(*ul));
 	ul->chan_nr = chan_nr;
@@ -503,8 +505,8 @@ int l1ctl_tx_dm_est_req_h1(struct osmocom_ms *ms, uint8_t maio, uint8_t hsn,
 	if (!msg)
 		return -1;
 
-	LOGP(DL1C, LOGL_INFO, "Tx Dedic.Mode Est Req (maio=%u, hsn=%u, "
-		"chan_nr=0x%02x)\n", maio, hsn, chan_nr);
+//	LOGP(DL1C, LOGL_INFO, "Tx Dedic.Mode Est Req (maio=%u, hsn=%u, "
+//		"chan_nr=0x%02x)\n", maio, hsn, chan_nr);
 
 	ul = (struct l1ctl_info_ul *) msgb_put(msg, sizeof(*ul));
 	ul->chan_nr = chan_nr;
@@ -536,8 +538,8 @@ int l1ctl_tx_dm_freq_req_h0(struct osmocom_ms *ms, uint16_t band_arfcn,
 	if (!msg)
 		return -1;
 
-	LOGP(DL1C, LOGL_INFO, "Tx Dedic.Mode Freq Req (arfcn=%u, fn=%d)\n",
-		band_arfcn, fn);
+//	LOGP(DL1C, LOGL_INFO, "Tx Dedic.Mode Freq Req (arfcn=%u, fn=%d)\n",
+//		band_arfcn, fn);
 
 	ul = (struct l1ctl_info_ul *) msgb_put(msg, sizeof(*ul));
 	ul->chan_nr = 0;
@@ -565,8 +567,8 @@ int l1ctl_tx_dm_freq_req_h1(struct osmocom_ms *ms, uint8_t maio, uint8_t hsn,
 	if (!msg)
 		return -1;
 
-	LOGP(DL1C, LOGL_INFO, "Tx Dedic.Mode Freq Req (maio=%u, hsn=%u, "
-		"fn=%d)\n", maio, hsn, fn);
+//	LOGP(DL1C, LOGL_INFO, "Tx Dedic.Mode Freq Req (maio=%u, hsn=%u, "
+//		"fn=%d)\n", maio, hsn, fn);
 
 	ul = (struct l1ctl_info_ul *) msgb_put(msg, sizeof(*ul));
 	ul->chan_nr = 0;
@@ -595,7 +597,7 @@ int l1ctl_tx_dm_rel_req(struct osmocom_ms *ms)
 	if (!msg)
 		return -1;
 
-	LOGP(DL1C, LOGL_INFO, "Tx Dedic.Mode Rel Req\n");
+//	LOGP(DL1C, LOGL_INFO, "Tx Dedic.Mode Rel Req\n");
 
 	ul = (struct l1ctl_info_ul *) msgb_put(msg, sizeof(*ul));
 
@@ -640,7 +642,7 @@ static int rx_l1_sim_conf(struct osmocom_ms *ms, struct msgb *msg)
 	uint16_t len = msg->len - sizeof(struct l1ctl_hdr);
 	uint8_t *data = msg->data + sizeof(struct l1ctl_hdr);
 	
-	LOGP(DL1C, LOGL_INFO, "SIM %s\n", osmo_hexdump(data, len));
+//	LOGP(DL1C, LOGL_INFO, "SIM %s\n", osmo_hexdump(data, len));
 	
 	/* pull the L1 header from the msgb */
 	msgb_pull(msg, sizeof(struct l1ctl_hdr));
@@ -662,7 +664,7 @@ int l1ctl_tx_pm_req_range(struct osmocom_ms *ms, uint16_t arfcn_from,
 	if (!msg)
 		return -1;
 
-	LOGP(DL1C, LOGL_INFO, "Tx PM Req (%u-%u)\n", arfcn_from, arfcn_to);
+//	LOGP(DL1C, LOGL_INFO, "Tx PM Req (%u-%u)\n", arfcn_from, arfcn_to);
 	pm = (struct l1ctl_pm_req *) msgb_put(msg, sizeof(*pm));
 	pm->type = 1;
 	pm->range.band_arfcn_from = htons(arfcn_from);
@@ -681,7 +683,7 @@ int l1ctl_tx_reset_req(struct osmocom_ms *ms, uint8_t type)
 	if (!msg)
 		return -1;
 
-	LOGP(DL1C, LOGL_INFO, "Tx Reset Req (%u)\n", type);
+//	LOGP(DL1C, LOGL_INFO, "Tx Reset Req (%u)\n", type);
 	res = (struct l1ctl_reset *) msgb_put(msg, sizeof(*res));
 	res->type = type;
 
@@ -691,7 +693,7 @@ int l1ctl_tx_reset_req(struct osmocom_ms *ms, uint8_t type)
 /* Receive L1CTL_RESET_IND */
 static int rx_l1_reset(struct osmocom_ms *ms)
 {
-	LOGP(DL1C, LOGL_INFO, "Layer1 Reset indication\n");
+//	LOGP(DL1C, LOGL_INFO, "Layer1 Reset indication\n");
 	osmo_signal_dispatch(SS_L1CTL, S_L1CTL_RESET, ms);
 
 	return 0;
@@ -705,8 +707,8 @@ static int rx_l1_pm_conf(struct osmocom_ms *ms, struct msgb *msg)
 	for (pmr = (struct l1ctl_pm_conf *) msg->l1h;
 	     (uint8_t *) pmr < msg->tail; pmr++) {
 		struct osmobb_meas_res mr;
-		DEBUGP(DL1C, "PM MEAS: ARFCN: %4u RxLev: %3d %3d\n",
-			ntohs(pmr->band_arfcn), pmr->pm[0], pmr->pm[1]);
+//		DEBUGP(DL1C, "PM MEAS: ARFCN: %4u RxLev: %3d %3d\n",
+//			ntohs(pmr->band_arfcn), pmr->pm[0], pmr->pm[1]);
 		mr.band_arfcn = ntohs(pmr->band_arfcn);
 		mr.rx_lev = pmr->pm[0];
 		mr.ms = ms;
@@ -722,14 +724,14 @@ static int rx_l1_ccch_mode_conf(struct osmocom_ms *ms, struct msgb *msg)
 	struct l1ctl_ccch_mode_conf *conf;
 
 	if (msgb_l3len(msg) < sizeof(*conf)) {
-		LOGP(DL1C, LOGL_ERROR, "CCCH MODE CONF: MSG too short %u\n",
-			msgb_l3len(msg));
+//		LOGP(DL1C, LOGL_ERROR, "CCCH MODE CONF: MSG too short %u\n",
+//			msgb_l3len(msg));
 		return -1;
 	}
 
 	conf = (struct l1ctl_ccch_mode_conf *) msg->l1h;
 
-	LOGP(DL1C, LOGL_INFO, "CCCH MODE CONF: mode=%u\n", conf->ccch_mode);
+//	LOGP(DL1C, LOGL_INFO, "CCCH MODE CONF: mode=%u\n", conf->ccch_mode);
 
 	mc.ccch_mode = conf->ccch_mode;
 	mc.ms = ms;
@@ -745,14 +747,14 @@ static int rx_l1_tch_mode_conf(struct osmocom_ms *ms, struct msgb *msg)
 	struct l1ctl_tch_mode_conf *conf;
 
 	if (msgb_l3len(msg) < sizeof(*conf)) {
-		LOGP(DL1C, LOGL_ERROR, "TCH MODE CONF: MSG too short %u\n",
-			msgb_l3len(msg));
+	//	LOGP(DL1C, LOGL_ERROR, "TCH MODE CONF: MSG too short %u\n",
+	//		msgb_l3len(msg));
 		return -1;
 	}
 
 	conf = (struct l1ctl_tch_mode_conf *) msg->l1h;
 
-	LOGP(DL1C, LOGL_INFO, "TCH MODE CONF: mode=%u\n", conf->tch_mode);
+//	LOGP(DL1C, LOGL_INFO, "TCH MODE CONF: mode=%u\n", conf->tch_mode);
 
 	mc.tch_mode = conf->tch_mode;
 	mc.audio_mode = conf->audio_mode;
@@ -784,7 +786,7 @@ static int rx_l1_traffic_ind(struct osmocom_ms *ms, struct msgb *msg)
      //   }
 	memcpy(ti->data, fr, 33);
 
-	DEBUGP(DL1C, "TRAFFIC IND (%s)\n", osmo_hexdump(ti->data, 33));
+//	DEBUGP(DL1C, "TRAFFIC IND (%s)\n", osmo_hexdump(ti->data, 33));
 
 	/* distribute or drop */
 	if (ms->l1_entity.l1_traffic_ind) {
@@ -812,19 +814,19 @@ int l1ctl_tx_traffic_req(struct osmocom_ms *ms, struct msgb *msg,
 	/* Header handling */
 	tr = (struct l1ctl_traffic_req *) msg->l2h;
 
-	DEBUGP(DL1C, "TRAFFIC REQ (%s)\n",
-		osmo_hexdump(msg->l2h, msgb_l2len(msg)));
+//	DEBUGP(DL1C, "TRAFFIC REQ (%s)\n",
+//		osmo_hexdump(msg->l2h, msgb_l2len(msg)));
 
 	if (msgb_l2len(msg) != 33) {
-		LOGP(DL1C, LOGL_ERROR, "Traffic Request has incorrect length "
-			"(%u != 33)\n", msgb_l2len(msg));
+//		LOGP(DL1C, LOGL_ERROR, "Traffic Request has incorrect length "
+//			"(%u != 33)\n", msgb_l2len(msg));
 		msgb_free(msg);
 		return -EINVAL;
 	}
 
 	if ((tr->data[0] >> 4) != 0xd) {
-		LOGP(DL1C, LOGL_ERROR, "Traffic Request has incorrect magic "
-			"(%u != 0xd)\n", tr->data[0] >> 4);
+	//	LOGP(DL1C, LOGL_ERROR, "Traffic Request has incorrect magic "
+	//		"(%u != 0xd)\n", tr->data[0] >> 4);
 		msgb_free(msg);
 		return -EINVAL;
 	}
@@ -863,7 +865,7 @@ int l1ctl_tx_neigh_pm_req(struct osmocom_ms *ms, int num, uint16_t *arfcn)
 	if (!msg)
 		return -1;
 
-	LOGP(DL1C, LOGL_INFO, "Tx NEIGH PM Req (num %u)\n", num);
+//	LOGP(DL1C, LOGL_INFO, "Tx NEIGH PM Req (num %u)\n", num);
 	pm_req = (struct l1ctl_neigh_pm_req *) msgb_put(msg, sizeof(*pm_req));
 	pm_req->n = num;
 	for (i = 0; i < num; i++) {
@@ -882,9 +884,9 @@ static int rx_l1_neigh_pm_ind(struct osmocom_ms *ms, struct msgb *msg)
 	for (pm_ind = (struct l1ctl_neigh_pm_ind *) msg->l1h;
 	     (uint8_t *) pm_ind < msg->tail; pm_ind++) {
 		struct osmobb_neigh_pm_ind mi;
-		DEBUGP(DL1C, "NEIGH_PM IND: ARFCN: %4u RxLev: %3d %3d\n",
-			ntohs(pm_ind->band_arfcn), pm_ind->pm[0],
-			pm_ind->pm[1]);
+///		DEBUGP(DL1C, "NEIGH_PM IND: ARFCN: %4u RxLev: %3d %3d\n",
+//			ntohs(pm_ind->band_arfcn), pm_ind->pm[0],
+//			pm_ind->pm[1]);
 		mi.band_arfcn = ntohs(pm_ind->band_arfcn);
 		mi.rx_lev = pm_ind->pm[0];
 		mi.ms = ms;
@@ -901,8 +903,8 @@ int l1ctl_recv(struct osmocom_ms *ms, struct msgb *msg)
 	struct l1ctl_info_dl *dl;
 
 	if (msgb_l2len(msg) < sizeof(*dl)) {
-		LOGP(DL1C, LOGL_ERROR, "Short Layer2 message: %u\n",
-			msgb_l2len(msg));
+	//	LOGP(DL1C, LOGL_ERROR, "Short Layer2 message: %u\n",
+	//		msgb_l2len(msg));
 		msgb_free(msg);
 		return -1;
 	}
@@ -915,10 +917,10 @@ int l1ctl_recv(struct osmocom_ms *ms, struct msgb *msg)
 
 	switch (l1h->msg_type) {
 	case L1CTL_FBSB_CONF:
-		puts("fbsb\n;");
+	//	puts("fbsb\n;");
 		rc = rx_l1_fbsb_conf(ms, msg);
 
-		msgb_free(msg);
+	//	msgb_free(msg);
 		break;
 	case L1CTL_DATA_IND:
 		rc = rx_ph_data_ind(ms, msg);
@@ -963,17 +965,17 @@ int l1ctl_recv(struct osmocom_ms *ms, struct msgb *msg)
 		msgb_free(msg);
 		break;
 	case L1CTL_TRAFFIC_IND:
-		puts("trf\n;");
+	//	puts("trf\n;");
 		rc = rx_l1_traffic_ind(ms, msg);
 		break;
 	case L1CTL_TRAFFIC_CONF:
 		msgb_free(msg);
 		break;
 	default:
-		LOGP(DL1C, LOGL_ERROR, "Unknown MSG: %u\n", l1h->msg_type);
+	//	LOGP(DL1C, LOGL_ERROR, "Unknown MSG: %u\n", l1h->msg_type);
 		msgb_free(msg);
 		break;
 	}
-
+	msgb_free(msg);
 	return rc;
 }

@@ -86,7 +86,7 @@ local_irq_restore(flags);
 int l2_l1_handler(struct osmocom_ms *ms)
 {
 	struct msgb *msg;
-	printf("TP1\n");
+	//printf("TP1\n");
 	uint16_t len;
 	int rc;
 	unsigned long flags;
@@ -98,11 +98,11 @@ int l2_l1_handler(struct osmocom_ms *ms)
 
 
 	//
-	printf("TP2\n");
+	//printf("TP2\n");
 	local_firq_save(flags);
 	msg=msgb_dequeue(&l1_data_queue_for_l2);
 	local_irq_restore(flags);
-	printf("TP3\n");
+	//printf("TP3\n");
 
 
 	//local_irq_restore(flags);

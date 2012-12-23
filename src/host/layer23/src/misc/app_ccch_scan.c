@@ -60,7 +60,7 @@ static void dump_bcch(struct osmocom_ms *ms, uint8_t tc, const uint8_t *data)
 	case GSM48_MT_RR_SYSINFO_1:
 #ifdef BCCH_TC_CHECK
 		if (tc != 0)
-			LOGP(DRR, LOGL_ERROR, "SI1 on the wrong TC: %d\n", tc);
+			printf( "SI1 on the wrong TC: %d\n", tc);
 #endif
 		if (!app_state.has_si1) {
 			struct gsm48_system_information_type_1 *si1 =
@@ -72,19 +72,19 @@ static void dump_bcch(struct osmocom_ms *ms, uint8_t tc, const uint8_t *data)
 					       0xff, 0x01);
 
 			app_state.has_si1 = 1;
-			LOGP(DRR, LOGL_ERROR, "SI1 received.\n");
+			printf("SI1 received.\n");
 		}
 		break;
 	case GSM48_MT_RR_SYSINFO_2:
 #ifdef BCCH_TC_CHECK
 		if (tc != 1)
-			LOGP(DRR, LOGL_ERROR, "SI2 on the wrong TC: %d\n", tc);
+			printf("SI2 on the wrong TC: %d\n", tc);
 #endif
 		break;
 	case GSM48_MT_RR_SYSINFO_3:
 #ifdef BCCH_TC_CHECK
 		if (tc != 2 && tc != 6)
-			LOGP(DRR, LOGL_ERROR, "SI3 on the wrong TC: %d\n", tc);
+			printf( "SI3 on the wrong TC: %d\n", tc);
 #endif
 		if (app_state.ccch_mode == CCCH_MODE_NONE) {
 			struct gsm48_system_information_type_3 *si3 =
@@ -101,7 +101,7 @@ static void dump_bcch(struct osmocom_ms *ms, uint8_t tc, const uint8_t *data)
 	case GSM48_MT_RR_SYSINFO_4:
 #ifdef BCCH_TC_CHECK
 		if (tc != 3 && tc != 7)
-			LOGP(DRR, LOGL_ERROR, "SI4 on the wrong TC: %d\n", tc);
+			printf( "SI4 on the wrong TC: %d\n", tc);
 #endif
 		break;
 	case GSM48_MT_RR_SYSINFO_5:
@@ -111,49 +111,49 @@ static void dump_bcch(struct osmocom_ms *ms, uint8_t tc, const uint8_t *data)
 	case GSM48_MT_RR_SYSINFO_7:
 #ifdef BCCH_TC_CHECK
 		if (tc != 7)
-			LOGP(DRR, LOGL_ERROR, "SI7 on the wrong TC: %d\n", tc);
+			printf( "SI7 on the wrong TC: %d\n", tc);
 #endif
 		break;
 	case GSM48_MT_RR_SYSINFO_8:
 #ifdef BCCH_TC_CHECK
 		if (tc != 3)
-			LOGP(DRR, LOGL_ERROR, "SI8 on the wrong TC: %d\n", tc);
+			printf( "SI8 on the wrong TC: %d\n", tc);
 #endif
 		break;
 	case GSM48_MT_RR_SYSINFO_9:
 #ifdef BCCH_TC_CHECK
 		if (tc != 4)
-			LOGP(DRR, LOGL_ERROR, "SI9 on the wrong TC: %d\n", tc);
+			printf("SI9 on the wrong TC: %d\n", tc);
 #endif
 		break;
 	case GSM48_MT_RR_SYSINFO_13:
 #ifdef BCCH_TC_CHECK
 		if (tc != 4 && tc != 0)
-			LOGP(DRR, LOGL_ERROR, "SI13 on the wrong TC: %d\n", tc);
+			printf( "SI13 on the wrong TC: %d\n", tc);
 #endif
 		break;
 	case GSM48_MT_RR_SYSINFO_16:
 #ifdef BCCH_TC_CHECK
 		if (tc != 6)
-			LOGP(DRR, LOGL_ERROR, "SI16 on the wrong TC: %d\n", tc);
+			printf( "SI16 on the wrong TC: %d\n", tc);
 #endif
 		break;
 	case GSM48_MT_RR_SYSINFO_17:
 #ifdef BCCH_TC_CHECK
 		if (tc != 2)
-			LOGP(DRR, LOGL_ERROR, "SI17 on the wrong TC: %d\n", tc);
+			printf( "SI17 on the wrong TC: %d\n", tc);
 #endif
 		break;
 	case GSM48_MT_RR_SYSINFO_2bis:
 #ifdef BCCH_TC_CHECK
 		if (tc != 5)
-			LOGP(DRR, LOGL_ERROR, "SI2bis on the wrong TC: %d\n", tc);
+			printf( "SI2bis on the wrong TC: %d\n", tc);
 #endif
 		break;
 	case GSM48_MT_RR_SYSINFO_2ter:
 #ifdef BCCH_TC_CHECK
 		if (tc != 5 && tc != 4)
-			LOGP(DRR, LOGL_ERROR, "SI2ter on the wrong TC: %d\n", tc);
+			printf( "SI2ter on the wrong TC: %d\n", tc);
 #endif
 		break;
 	case GSM48_MT_RR_SYSINFO_5bis:
@@ -161,7 +161,7 @@ static void dump_bcch(struct osmocom_ms *ms, uint8_t tc, const uint8_t *data)
 	case GSM48_MT_RR_SYSINFO_5ter:
 		break;
 	default:
-		LOGP(DRR, LOGL_ERROR, "Unknown SI: %d\n",
+printf("Unknown SI: %d\n",
 		     si_hdr->system_information);
 		break;
 	};
@@ -192,7 +192,7 @@ static int gsm48_rx_imm_ass(struct msgb *msg, struct osmocom_ms *ms)
 
 		arfcn = ia->chan_desc.h0.arfcn_low | (ia->chan_desc.h0.arfcn_high << 8);
 
-		LOGP(DRR, LOGL_NOTICE, "GSM48 IMM ASS (ra=0x%02x, chan_nr=0x%02x, "
+		printf("GSM48 IMM ASS (ra=0x%02x, chan_nr=0x%02x, "
 			"ARFCN=%u, TS=%u, SS=%u, TSC=%u) ", ia->req_ref.ra,
 			ia->chan_desc.chan_nr, arfcn, ch_ts, ch_subch,
 			ia->chan_desc.h0.tsc);
@@ -206,7 +206,7 @@ static int gsm48_rx_imm_ass(struct msgb *msg, struct osmocom_ms *ms)
 		hsn = ia->chan_desc.h1.hsn;
 		maio = ia->chan_desc.h1.maio_low | (ia->chan_desc.h1.maio_high << 2);
 
-		LOGP(DRR, LOGL_NOTICE, "GSM48 IMM ASS (ra=0x%02x, chan_nr=0x%02x, "
+		printf( "GSM48 IMM ASS (ra=0x%02x, chan_nr=0x%02x, "
 			"HSN=%u, MAIO=%u, TS=%u, SS=%u, TSC=%u) ", ia->req_ref.ra,
 			ia->chan_desc.chan_nr, hsn, maio, ch_ts, ch_subch,
 			ia->chan_desc.h1.tsc);
@@ -225,7 +225,7 @@ static int gsm48_rx_imm_ass(struct msgb *msg, struct osmocom_ms *ms)
 		}
 	}
 
-	LOGPC(DRR, LOGL_NOTICE, "\n");
+	printf( "\n");
 	return 0;
 }
 
@@ -290,7 +290,7 @@ static int gsm48_rx_paging_p1(struct msgb *msg, struct osmocom_ms *ms)
 
 	/* is there enough room for the header + LV? */
 	if (msgb_l3len(msg) < sizeof(*pag) + 2) {
-		LOGP(DRR, LOGL_ERROR, "PagingRequest is too short.\n");
+		printf( "PagingRequest is too short.\n");
 		return -1;
 	}
 
@@ -299,17 +299,21 @@ static int gsm48_rx_paging_p1(struct msgb *msg, struct osmocom_ms *ms)
 	mi_type = pag->data[1] & GSM_MI_TYPE_MASK;
 
 	if (msgb_l3len(msg) < sizeof(*pag) + 2 + len1) {
-		LOGP(DRR, LOGL_ERROR, "PagingRequest with wrong MI\n");
+		printf("PagingRequest with wrong MI\n");
 		return -1;
 	}
 
 	if (mi_type != GSM_MI_TYPE_NONE) {
 		gsm48_mi_to_string(mi_string, sizeof(mi_string), &pag->data[1], len1);
-	printf( "Paging1: %s chan %s to %s M(%s) \n",
+		char *paging;
+
+	sprintf( paging,"Paging1: %s chan %s to %s M(%s) \n",
 		     pag_print_mode(pag->pag_mode),
 		     chan_need(pag->cneed1),
 		     mi_type_to_string(mi_type),
 		     mi_string);
+	//sercomm_puts(paging);
+	free(paging);
 	}
 
 	/* check if we have a MI type in here */
@@ -321,17 +325,18 @@ static int gsm48_rx_paging_p1(struct msgb *msg, struct osmocom_ms *ms)
 	mi_type = pag->data[2 + len1 + 2] & GSM_MI_TYPE_MASK;
 	if (tag == GSM48_IE_MOBILE_ID && mi_type != GSM_MI_TYPE_NONE) {
 		if (msgb_l3len(msg) < sizeof(*pag) + 2 + len1 + 3 + len2) {
-			LOGP(DRR, LOGL_ERROR, "Optional MI does not fit here.\n");
+			printf( "Optional MI does not fit here.\n");
 			return -1;
 		}
 
 		gsm48_mi_to_string(mi_string, sizeof(mi_string), &pag->data[2 + len1 + 2], len2);
-		printf( "Paging2: %s chan %s to %s M(%s) \n",
+	/*	printf( "Paging2: %s chan %s to %s M(%s) \n",
 		     pag_print_mode(pag->pag_mode),
 		     chan_need(pag->cneed2),
 		     mi_type_to_string(mi_type),
-		     mi_string);
+		     mi_string);*/
 	}
+
 	return 0;
 }
 
@@ -342,17 +347,17 @@ static int gsm48_rx_paging_p2(struct msgb *msg, struct osmocom_ms *ms)
 	char mi_string[GSM48_MI_SIZE];
 
 	if (msgb_l3len(msg) < sizeof(*pag)) {
-		LOGP(DRR, LOGL_ERROR, "Paging2 message is too small.\n");
+		printf( "Paging2 message is too small.\n");
 		return -1;
 	}
 
 	pag = msgb_l3(msg);
-	LOGP(DRR, LOGL_NOTICE, "Paging1: %s chan %s to TMSI M(0x%x) \n",
-		     pag_print_mode(pag->pag_mode),
-		     chan_need(pag->cneed1), pag->tmsi1);
-	LOGP(DRR, LOGL_NOTICE, "Paging2: %s chan %s to TMSI M(0x%x) \n",
-		     pag_print_mode(pag->pag_mode),
-		     chan_need(pag->cneed2), pag->tmsi2);
+	//printf( "Paging1: %s chan %s to TMSI M(0x%x) \n",
+	//	     pag_print_mode(pag->pag_mode),
+	//	     chan_need(pag->cneed1), pag->tmsi1);
+	//printf( "Paging2: %s chan %s to TMSI M(0x%x) \n",
+	//	     pag_print_mode(pag->pag_mode),
+	//	     chan_need(pag->cneed2), pag->tmsi2);
 
 	/* no optional element */
 	if (msgb_l3len(msg) < sizeof(*pag) + 3)
@@ -366,17 +371,17 @@ static int gsm48_rx_paging_p2(struct msgb *msg, struct osmocom_ms *ms)
 		return 0;
 
 	if (msgb_l3len(msg) < sizeof(*pag) + 3 + len) {
-		LOGP(DRR, LOGL_ERROR, "Optional MI does not fit in here\n");
+		printf("Optional MI does not fit in here\n");
 		return -1;
 	}
 
 	gsm48_mi_to_string(mi_string, sizeof(mi_string), &pag->data[2], len);
-	LOGP(DRR, LOGL_NOTICE, "Paging3: %s chan %s to %s M(%s) \n",
+	/*printf("Paging3: %s chan %s to %s M(%s) \n",
 	     pag_print_mode(pag->pag_mode),
 	     "n/a ",
 	     mi_type_to_string(mi_type),
 	     mi_string);
-
+*/
 	return 0;
 }
 
@@ -385,24 +390,24 @@ static int gsm48_rx_paging_p3(struct msgb *msg, struct osmocom_ms *ms)
 	struct gsm48_paging3 *pag;
 
 	if (msgb_l3len(msg) < sizeof(*pag)) {
-		LOGP(DRR, LOGL_ERROR, "Paging3 message is too small.\n");
+		printf( "Paging3 message is too small.\n");
 		return -1;
 	}
 
 	pag = msgb_l3(msg);
-	LOGP(DRR, LOGL_NOTICE, "Paging1: %s chan %s to TMSI M(0x%x) \n",
+	/*printf( "Paging1: %s chan %s to TMSI M(0x%x) \n",
 		     pag_print_mode(pag->pag_mode),
 		     chan_need(pag->cneed1), pag->tmsi1);
-	LOGP(DRR, LOGL_NOTICE, "Paging2: %s chan %s to TMSI M(0x%x) \n",
+	printf("Paging2: %s chan %s to TMSI M(0x%x) \n",
 		     pag_print_mode(pag->pag_mode),
 		     chan_need(pag->cneed2), pag->tmsi2);
-	LOGP(DRR, LOGL_NOTICE, "Paging3: %s chan %s to TMSI M(0x%x) \n",
+	printf( "Paging3: %s chan %s to TMSI M(0x%x) \n",
 		     pag_print_mode(pag->pag_mode),
 		     "n/a ", pag->tmsi3);
-	LOGP(DRR, LOGL_NOTICE, "Paging4: %s chan %s to TMSI M(0x%x) \n",
+	printf( "Paging4: %s chan %s to TMSI M(0x%x) \n",
 		     pag_print_mode(pag->pag_mode),
 		     "n/a ", pag->tmsi4);
-
+*/
 	return 0;
 }
 
@@ -412,11 +417,13 @@ int gsm48_rx_ccch(struct msgb *msg, struct osmocom_ms *ms)
 	int rc = 0;
 
 	if (sih->rr_protocol_discriminator != GSM48_PDISC_RR)
-		LOGP(DRR, LOGL_ERROR, "PCH pdisc != RR\n");
+		printf("PCH pdisc != RR\n");
 
 	switch (sih->system_information) {
 	case GSM48_MT_RR_PAG_REQ_1:
 		gsm48_rx_paging_p1(msg, ms);
+		//msgb_free(msg);
+
 		break;
 	case GSM48_MT_RR_PAG_REQ_2:
 		gsm48_rx_paging_p2(msg, ms);
@@ -434,10 +441,11 @@ int gsm48_rx_ccch(struct msgb *msg, struct osmocom_ms *ms)
 		/* wireshark know that this is SI2 quater and for 3G interop */
 		break;
 	default:
-		LOGP(DRR, LOGL_NOTICE, "unknown PCH/AGCH type 0x%02x\n",
+		printf( "unknown PCH/AGCH type 0x%02x\n",
 			sih->system_information);
 		rc = -EINVAL;
 	}
+//msgb_free(msg);
 
 	return rc;
 }
@@ -483,7 +491,7 @@ static int signal_cb(unsigned int subsys, unsigned int signal,
 		ms = signal_data;
 		layer3_app_reset();
 		//printf("arfcn=%u",ms->test_arfcn);
-		return l1ctl_tx_fbsb_req(ms, 116,
+		return l1ctl_tx_fbsb_req(ms, 111,
 		                         L1CTL_FBSB_F_FB01SB, 100, 0,
 		                         CCCH_MODE_NONE);
 		break;

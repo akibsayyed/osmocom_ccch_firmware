@@ -94,6 +94,7 @@ static int rslms_rx_rll(struct msgb *msg, struct osmocom_ms *ms)
 		break;
 	case RSL_MT_UNIT_DATA_IND:
 		rc = rslms_rx_udata_ind(msg, ms);
+
 		break;
 	case RSL_MT_EST_IND:
 		DEBUGP(DRSL, "RSLms EST IND\n");
@@ -117,7 +118,9 @@ static int rslms_rx_rll(struct msgb *msg, struct osmocom_ms *ms)
 		rc = -EINVAL;
 		break;
 	}
-	msgb_free(msg);
+
+//	msgb_free(msg); ///MODDED FOR HANG ISSUE
+
 	return rc;
 }
 

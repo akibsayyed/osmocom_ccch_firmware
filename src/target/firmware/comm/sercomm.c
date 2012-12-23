@@ -113,7 +113,7 @@ void sercomm_sendmsg(uint8_t dlci, struct msgb *msg)
 {
 	unsigned long flags;
 	uint8_t *hdr;
-
+	//puts("send msg1.1");
 	/* prepend address + control octet */
 	hdr = msgb_push(msg, 2);
 	hdr[0] = dlci;
@@ -124,11 +124,12 @@ void sercomm_sendmsg(uint8_t dlci, struct msgb *msg)
 	sercomm_lock(&flags);
 	msgb_enqueue(&sercomm.tx.dlci_queues[dlci], msg);
 	sercomm_unlock(&flags);
-
+//puts("send msg1.2");
 #ifndef HOST_BUILD
 	/* tell UART that we have something to send */
 	uart_irq_enable(SERCOMM_UART_NR, UART_IRQ_TX_EMPTY, 1);
 #endif
+	//puts("send msg1.3");
 }
 
 /* how deep is the Tx queue for a given DLCI */

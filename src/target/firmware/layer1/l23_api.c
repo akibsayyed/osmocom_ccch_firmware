@@ -96,7 +96,8 @@ void l1_queue_for_l2(struct msgb *msg)
 	//puts("L23APITP5.5\n");--working
 
 	/* forward via serial for now */
-	receive_l2_from_l1(msg);
+	//receive_l2_from_l1(msg);
+	msgb_free(msg);
 	//sercomm_sendmsg(SC_DLCI_L1A_L23, msg);
 	//puts("L23APITP5.6\n");
 //sendl1l2msg(msg);//send to l1l2interface.c
