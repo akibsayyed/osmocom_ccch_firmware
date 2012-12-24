@@ -48,7 +48,7 @@ void message_enqueue(struct msgb *msg);
 void message_dequeue();
 void receive_l1_from_l2(struct msgb *msg);
 static int l2l1handler();
-
+struct l1ctl_hdr *l1h;
  struct llist_head l1_data_queue_for_l2 = LLIST_HEAD_INIT(l1_data_queue_for_l2);
 void initialise_queue()
 {
@@ -85,24 +85,38 @@ local_irq_restore(flags);
 }
 int l2_l1_handler(struct osmocom_ms *ms)
 {
-	struct msgb *msg;
+	struct msgb *msg,*msgs;
 	//printf("TP1\n");
 	uint16_t len;
 	int rc;
 	unsigned long flags;
-	msg = msgb_alloc_headroom(GSM_L2_LENGTH+GSM_L2_HEADROOM, GSM_L2_HEADROOM, "Layer2");
-	if (!msg) {
-		printf( "Failed to allocate msg.\n l1l2interface\n");
-		return -ENOMEM;
-	}
-
-
+//	msg = msgb_alloc_headroom(GSM_L2_LENGTH+GSM_L2_HEADROOM, GSM_L2_HEADROOM, "Layer2");
+//	if (!msg) {
+//		printf( "Failed to allocate msg.\n l1l2interface\n");
+//		return -ENOMEM;
+//	}
+//printf("size of linked list-%d",sizeof(l1_data_queue_for_l2));
+//printf("test");
 	//
 	//printf("TP2\n");
 	local_firq_save(flags);
+
 	msg=msgb_dequeue(&l1_data_queue_for_l2);
 	local_irq_restore(flags);
 	//printf("TP3\n");
+
+	if (!msg)
+	{
+	//	printf("\n============================================================");
+		return 0;
+	}
+
+	//l1h = (struct l1ctl_hdr *) msg->l1h;
+
+		/* move the l1 header pointer to point _BEHIND_ l1ctl_hdr,
+		   as the l1ctl header is of no interest to subsequent code */
+		//msgs->l1h = l1h->data;
+printf("\nmsg-data-%d",msg->l1h);
 
 
 	//local_irq_restore(flags);
@@ -140,7 +154,7 @@ int l2_l1_handler(struct osmocom_ms *ms)
 
 
 	l1ctl_recv(ms, msg);
-
+msgb_free(msg);
 //
 	return 0;
 }

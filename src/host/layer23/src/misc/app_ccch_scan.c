@@ -307,13 +307,14 @@ static int gsm48_rx_paging_p1(struct msgb *msg, struct osmocom_ms *ms)
 		gsm48_mi_to_string(mi_string, sizeof(mi_string), &pag->data[1], len1);
 		char *paging;
 
-	sprintf( paging,"Paging1: %s chan %s to %s M(%s) \n",
+/*	sprintf( paging,"Paging1: %s chan %s to %s M(%s) \n",
 		     pag_print_mode(pag->pag_mode),
 		     chan_need(pag->cneed1),
 		     mi_type_to_string(mi_type),
-		     mi_string);
-	//sercomm_puts(paging);
-	free(paging);
+		     mi_string);*/
+	printf("M(%s)-%p\n",mi_string,mi_string);
+//	sercomm_puts(paging);
+//	free(paging);
 	}
 
 	/* check if we have a MI type in here */
@@ -426,13 +427,13 @@ int gsm48_rx_ccch(struct msgb *msg, struct osmocom_ms *ms)
 
 		break;
 	case GSM48_MT_RR_PAG_REQ_2:
-		gsm48_rx_paging_p2(msg, ms);
+		//gsm48_rx_paging_p2(msg, ms);
 		break;
 	case GSM48_MT_RR_PAG_REQ_3:
-		gsm48_rx_paging_p3(msg, ms);
+		//gsm48_rx_paging_p3(msg, ms);
 		break;
 	case GSM48_MT_RR_IMM_ASS:
-		gsm48_rx_imm_ass(msg, ms);
+		//gsm48_rx_imm_ass(msg, ms);
 		break;
 	case GSM48_MT_RR_NOTIF_NCH:
 		/* notification for voice call groups and such */
@@ -510,12 +511,4 @@ int l23_app_init(struct osmocom_ms *ms)
 	return layer3_init(ms);
 }
 
-static struct l23_app_info info = {
-	.copyright	= "Copyright (C) 2010 Harald Welte <laforge@gnumonks.org>\n",
-	.contribution	= "Contributions by Holger Hans Peter Freyther\n",
-};
 
-struct l23_app_info *l23_app_info()
-{
-	return &info;
-}

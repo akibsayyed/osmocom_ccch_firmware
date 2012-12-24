@@ -903,8 +903,8 @@ int l1ctl_recv(struct osmocom_ms *ms, struct msgb *msg)
 	struct l1ctl_info_dl *dl;
 
 	if (msgb_l2len(msg) < sizeof(*dl)) {
-	//	LOGP(DL1C, LOGL_ERROR, "Short Layer2 message: %u\n",
-	//		msgb_l2len(msg));
+		printf( "Short Layer2 message: %u\n",
+			msgb_l2len(msg));
 		msgb_free(msg);
 		return -1;
 	}
@@ -917,14 +917,14 @@ int l1ctl_recv(struct osmocom_ms *ms, struct msgb *msg)
 
 	switch (l1h->msg_type) {
 	case L1CTL_FBSB_CONF:
-	//	puts("fbsb\n;");
+	//puts("fbsb\n;");
 		rc = rx_l1_fbsb_conf(ms, msg);
 
 	//	msgb_free(msg);
 		break;
 	case L1CTL_DATA_IND:
 		rc = rx_ph_data_ind(ms, msg);
-	//	puts("data\n;");
+	//uts("data\n;");
 		break;
 	case L1CTL_DATA_CONF:
 		rc = rx_ph_data_conf(ms, msg);
@@ -933,7 +933,7 @@ int l1ctl_recv(struct osmocom_ms *ms, struct msgb *msg)
 	case L1CTL_RESET_IND:
 	case L1CTL_RESET_CONF:
 		rc = rx_l1_reset(ms);
-	//	puts("reset\n;");
+	//puts("reset\n;");
 		msgb_free(msg);
 		break;
 	case L1CTL_PM_CONF:

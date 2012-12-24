@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-static char printf_buffer[1024];
+static char printf_buffer[2024];
 
 int printf(const char *fmt, ...)
 {

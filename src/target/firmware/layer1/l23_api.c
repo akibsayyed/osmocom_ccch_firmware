@@ -88,16 +88,16 @@ void receive_l1_from_l2(struct msgb *msg)
 void l1_queue_for_l2(struct msgb *msg)
 {
 	//puts("L23APITP5.3\n");--working
-	if (l1a_l23_tx_cb) {
+	/*if (l1a_l23_tx_cb) {
 		l1a_l23_tx_cb(msg);
 		//puts("L23APITP5.4\n");--working
 		return;
-	}
+	}*/
 	//puts("L23APITP5.5\n");--working
 
 	/* forward via serial for now */
-	//receive_l2_from_l1(msg);
-	msgb_free(msg);
+	receive_l2_from_l1(msg);
+
 	//sercomm_sendmsg(SC_DLCI_L1A_L23, msg);
 	//puts("L23APITP5.6\n");
 //sendl1l2msg(msg);//send to l1l2interface.c
@@ -643,24 +643,17 @@ void l1a_l23_handler(void)
 	struct msgb *msg;
 	struct l1ctl_hdr *l1h;
 	unsigned long flags;
-
+//	printf("\ninside l1a_l23handler----------1");
 	local_firq_save(flags);
 	msg = msgb_dequeue(&l23_rx_queue);
 	local_irq_restore(flags);
+	//printf("\ninside l1a_l23handler----------2");
 	if (!msg)
 		return;
 
 	l1h = (struct l1ctl_hdr *) msg->data;
 
-#if 0
-	{
-		int i;
-		printf("l1a_l23_rx_cb (%u): ", msg->len);
-		for (i = 0; i < msg->len; i++)
-			printf("%02x ", msg->data[i]);
-		puts("\n");
-	}
-#endif
+
 
 	msg->l1h = msg->data;
 
