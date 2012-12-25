@@ -193,7 +193,7 @@ static int gsm48_rx_imm_ass(struct msgb *msg, struct osmocom_ms *ms)
 		arfcn = ia->chan_desc.h0.arfcn_low | (ia->chan_desc.h0.arfcn_high << 8);
 
 		printf("GSM48 IMM ASS (ra=0x%02x, chan_nr=0x%02x, "
-			"ARFCN=%u, TS=%u, SS=%u, TSC=%u) ", ia->req_ref.ra,
+			"ARFCN=%u, TS=%u, SS=%u, TSC=%u) \n", ia->req_ref.ra,
 			ia->chan_desc.chan_nr, arfcn, ch_ts, ch_subch,
 			ia->chan_desc.h0.tsc);
 
@@ -207,7 +207,7 @@ static int gsm48_rx_imm_ass(struct msgb *msg, struct osmocom_ms *ms)
 		maio = ia->chan_desc.h1.maio_low | (ia->chan_desc.h1.maio_high << 2);
 
 		printf( "GSM48 IMM ASS (ra=0x%02x, chan_nr=0x%02x, "
-			"HSN=%u, MAIO=%u, TS=%u, SS=%u, TSC=%u) ", ia->req_ref.ra,
+			"HSN=%u, MAIO=%u, TS=%u, SS=%u, TSC=%u) \n", ia->req_ref.ra,
 			ia->chan_desc.chan_nr, hsn, maio, ch_ts, ch_subch,
 			ia->chan_desc.h1.tsc);
 
@@ -307,13 +307,13 @@ static int gsm48_rx_paging_p1(struct msgb *msg, struct osmocom_ms *ms)
 		gsm48_mi_to_string(mi_string, sizeof(mi_string), &pag->data[1], len1);
 		char *paging;
 
-/*	sprintf( paging,"Paging1: %s chan %s to %s M(%s) \n",
+	sprintf( paging,"Paging1: %s chan %s to %s M(%s) \n",
 		     pag_print_mode(pag->pag_mode),
 		     chan_need(pag->cneed1),
 		     mi_type_to_string(mi_type),
-		     mi_string);*/
-	printf("M(%s)-%p\n",mi_string,mi_string);
-//	sercomm_puts(paging);
+		     mi_string);
+//	printf("M(%s)-\n",mi_string);
+	sercomm_puts(paging);
 //	free(paging);
 	}
 
@@ -331,11 +331,11 @@ static int gsm48_rx_paging_p1(struct msgb *msg, struct osmocom_ms *ms)
 		}
 
 		gsm48_mi_to_string(mi_string, sizeof(mi_string), &pag->data[2 + len1 + 2], len2);
-	/*	printf( "Paging2: %s chan %s to %s M(%s) \n",
+		printf( "Paging2: %s chan %s to %s M(%s) \n",
 		     pag_print_mode(pag->pag_mode),
 		     chan_need(pag->cneed2),
 		     mi_type_to_string(mi_type),
-		     mi_string);*/
+		     mi_string);
 	}
 
 	return 0;
@@ -353,12 +353,12 @@ static int gsm48_rx_paging_p2(struct msgb *msg, struct osmocom_ms *ms)
 	}
 
 	pag = msgb_l3(msg);
-	//printf( "Paging1: %s chan %s to TMSI M(0x%x) \n",
-	//	     pag_print_mode(pag->pag_mode),
-	//	     chan_need(pag->cneed1), pag->tmsi1);
-	//printf( "Paging2: %s chan %s to TMSI M(0x%x) \n",
-	//	     pag_print_mode(pag->pag_mode),
-	//	     chan_need(pag->cneed2), pag->tmsi2);
+	printf( "Paging1: %s chan %s to TMSI M(0x%x) \n",
+		     pag_print_mode(pag->pag_mode),
+		     chan_need(pag->cneed1), pag->tmsi1);
+	printf( "Paging2: %s chan %s to TMSI M(0x%x) \n",
+		     pag_print_mode(pag->pag_mode),
+		     chan_need(pag->cneed2), pag->tmsi2);
 
 	/* no optional element */
 	if (msgb_l3len(msg) < sizeof(*pag) + 3)
@@ -377,12 +377,12 @@ static int gsm48_rx_paging_p2(struct msgb *msg, struct osmocom_ms *ms)
 	}
 
 	gsm48_mi_to_string(mi_string, sizeof(mi_string), &pag->data[2], len);
-	/*printf("Paging3: %s chan %s to %s M(%s) \n",
+	printf("Paging3: %s chan %s to %s M(%s) \n",
 	     pag_print_mode(pag->pag_mode),
 	     "n/a ",
 	     mi_type_to_string(mi_type),
 	     mi_string);
-*/
+
 	return 0;
 }
 
@@ -396,7 +396,7 @@ static int gsm48_rx_paging_p3(struct msgb *msg, struct osmocom_ms *ms)
 	}
 
 	pag = msgb_l3(msg);
-	/*printf( "Paging1: %s chan %s to TMSI M(0x%x) \n",
+	printf( "Paging1: %s chan %s to TMSI M(0x%x) \n",
 		     pag_print_mode(pag->pag_mode),
 		     chan_need(pag->cneed1), pag->tmsi1);
 	printf("Paging2: %s chan %s to TMSI M(0x%x) \n",
@@ -408,7 +408,6 @@ static int gsm48_rx_paging_p3(struct msgb *msg, struct osmocom_ms *ms)
 	printf( "Paging4: %s chan %s to TMSI M(0x%x) \n",
 		     pag_print_mode(pag->pag_mode),
 		     "n/a ", pag->tmsi4);
-*/
 	return 0;
 }
 
@@ -418,7 +417,10 @@ int gsm48_rx_ccch(struct msgb *msg, struct osmocom_ms *ms)
 	int rc = 0;
 
 	if (sih->rr_protocol_discriminator != GSM48_PDISC_RR)
-		printf("PCH pdisc != RR\n");
+		{
+			printf("PCH pdisc != RR\n");
+			return 0;
+		}
 
 	switch (sih->system_information) {
 	case GSM48_MT_RR_PAG_REQ_1:
@@ -427,13 +429,13 @@ int gsm48_rx_ccch(struct msgb *msg, struct osmocom_ms *ms)
 
 		break;
 	case GSM48_MT_RR_PAG_REQ_2:
-		//gsm48_rx_paging_p2(msg, ms);
+		gsm48_rx_paging_p2(msg, ms);
 		break;
 	case GSM48_MT_RR_PAG_REQ_3:
-		//gsm48_rx_paging_p3(msg, ms);
+		gsm48_rx_paging_p3(msg, ms);
 		break;
 	case GSM48_MT_RR_IMM_ASS:
-		//gsm48_rx_imm_ass(msg, ms);
+		gsm48_rx_imm_ass(msg, ms);
 		break;
 	case GSM48_MT_RR_NOTIF_NCH:
 		/* notification for voice call groups and such */

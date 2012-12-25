@@ -116,7 +116,7 @@ int l2_l1_handler(struct osmocom_ms *ms)
 		/* move the l1 header pointer to point _BEHIND_ l1ctl_hdr,
 		   as the l1ctl header is of no interest to subsequent code */
 		//msgs->l1h = l1h->data;
-printf("\nmsg-data-%d",msg->l1h);
+//printf("\nmsg-data-%d",msg->l1h);
 
 
 	//local_irq_restore(flags);
@@ -152,8 +152,10 @@ printf("\nmsg-data-%d",msg->l1h);
 	//	return rc;
 	//}
 
+ //int a =0;
 
 	l1ctl_recv(ms, msg);
+//printf("l1ctl_recv-%d",a);
 msgb_free(msg);
 //
 	return 0;
