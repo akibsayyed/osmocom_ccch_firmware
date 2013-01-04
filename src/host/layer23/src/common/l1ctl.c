@@ -914,7 +914,7 @@ int l1ctl_recv(struct osmocom_ms *ms, struct msgb *msg)
 	/* move the l1 header pointer to point _BEHIND_ l1ctl_hdr,
 	   as the l1ctl header is of no interest to subsequent code */
 	msg->l1h = l1h->data;
-
+printf("\ninl1ctl\n");
 	switch (l1h->msg_type) {
 	case L1CTL_FBSB_CONF:
 	//puts("fbsb\n;");
@@ -944,7 +944,7 @@ int l1ctl_recv(struct osmocom_ms *ms, struct msgb *msg)
 		msgb_free(msg);
 		break;
 	case L1CTL_RACH_CONF:
-	//	puts("rach\n;");
+		puts("rach\n;");
 		rc = rx_l1_rach_conf(ms, msg);
 		break;
 	case L1CTL_CCCH_MODE_CONF:
@@ -976,6 +976,8 @@ int l1ctl_recv(struct osmocom_ms *ms, struct msgb *msg)
 		msgb_free(msg);
 		break;
 	}
+	//printf("\noutl1ctl\n");
 	msgb_free(msg);
+
 	return rc;
 }

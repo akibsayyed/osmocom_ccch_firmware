@@ -51,10 +51,10 @@ int _scan_work(struct osmocom_ms *ms)
 int _scan_exit(struct osmocom_ms *ms)
 {
 	/* in case there is a lockup during exit */
-	signal(SIGINT, SIG_DFL);
-	signal(SIGHUP, SIG_DFL);
-	signal(SIGTERM, SIG_DFL);
-	signal(SIGPIPE, SIG_DFL);
+//	signal(SIGINT, SIG_DFL);
+//	signal(SIGHUP, SIG_DFL);
+//	signal(SIGTERM, SIG_DFL);
+//	signal(SIGPIPE, SIG_DFL);
 
 	scan_exit();
 
@@ -68,8 +68,8 @@ int l23_app_init(struct osmocom_ms *ms)
 	srand(time(NULL));
 
 //	log_parse_category_mask(stderr_target, "DL1C:DRSL:DRR:DGPS:DSUM");
-	log_parse_category_mask(stderr_target, "DSUM");
-	log_set_log_level(stderr_target, LOGL_INFO);
+//	log_parse_category_mask(stderr_target, "DSUM");
+//	log_set_log_level(stderr_target, LOGL_INFO);
 
 	l23_app_work = _scan_work;
 	l23_app_exit = _scan_exit;
@@ -108,14 +108,7 @@ static int l23_getopt_options(struct option **options)
 
 static int l23_cfg_print_help()
 {
-	printf("\nApplication specific\n");
-	printf("  -l --logfile LOGFILE	Logfile for the cell log.\n");
-	printf("  -r --rach RACH	Nr. of RACH bursts to send.\n");
-	printf("  -n --no-rach		Send no rach bursts.\n");
-	printf("  -g --gpsd-host HOST	127.0.0.1. gpsd host.\n");
-	printf("  -p --port PORT	2947. gpsd port\n");
-	printf("  -f --gps DEVICE	/dev/ttyACM0. GPS serial device.\n");
-	printf("  -b --baud BAUDRAT	The baud rate of the GPS device\n");
+
 
 	return 0;
 }
@@ -133,44 +126,15 @@ static int l23_cfg_handle(int c, const char *optarg)
 		RACH_MAX = 0;
 		break;
 	case 'g':
-#ifdef _HAVE_GPSD
-		snprintf(g.gpsd_host, ARRAY_SIZE(g.gpsd_host), "%s", optarg);
-		/* force string terminator */
-		g.gpsd_host[ARRAY_SIZE(g.gpsd_host) - 1] = '\0';
-		if (g.gps_type != GPS_TYPE_UNDEF)
-			goto cmd_line_error;
-		g.gps_type = GPS_TYPE_GPSD;
-		LOGP(DGPS, LOGL_INFO, "Using gpsd host %s\n", g.gpsd_host);
-#else
-		printf("Gpsd support not compiled.\n");
-		exit(1);
-#endif
+
 		break;
 	case 'p':
-#ifdef _HAVE_GPSD
-		snprintf(g.gpsd_port, ARRAY_SIZE(g.gpsd_port), "%s", optarg);
-		/* force string terminator */
-		g.gpsd_port[ARRAY_SIZE(g.gpsd_port) - 1] = '\0';
-		g.gps_type = GPS_TYPE_GPSD;
-		LOGP(DGPS, LOGL_INFO, "Using gpsd port %s\n", g.gpsd_port);
-#else
-		printf("Gpsd support not compiled.\n");
-		exit(1);
-#endif
+
 		break;
 	case 'f':
-		snprintf(g.device, ARRAY_SIZE(g.device), "%s", optarg);
-		/* force string terminator */
-		g.device[ARRAY_SIZE(g.device) - 1] = '\0';
-		if (g.gps_type != GPS_TYPE_UNDEF)
-			goto cmd_line_error;
-		g.gps_type = GPS_TYPE_SERIAL;
-		LOGP(DGPS, LOGL_INFO, "Using GPS serial device %s\n", g.device);
-		break;
+
 	case 'b':
-		g.baud = atoi(optarg);
-		g.gps_type = GPS_TYPE_SERIAL;
-		LOGP(DGPS, LOGL_INFO, "Setting GPS baudrate to %u\n", g.baud);
+
 		break;
 	}
 	return 0;

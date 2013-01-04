@@ -43,7 +43,7 @@
 #include <osmocom/bb/common/networks.h>
 #include <osmocom/bb/common/gps.h>
 #include <osmocom/bb/misc/cell_log.h>
-#include "../../../gsmmap/geo.h"
+//#include "../../../gsmmap/geo.h"
 
 #define READ_WAIT	2, 0
 #define RACH_WAIT	0, 900000
@@ -107,10 +107,8 @@ struct rach_ref {
 	uint8_t t1, t2, t3;
 } rach_ref;
 
-#define LOGFILE(fmt, args...) \
-	fprintf(logfp, fmt, ## args);
-#define LOGFLUSH() \
-	fflush(logfp);
+
+
 
 static void start_sync(void);
 static void start_rach(void);
@@ -120,7 +118,7 @@ static void log_gps(void)
 {
 	if (!g.enable || !g.valid)
 		return;
-	LOGFILE("position %.8f %.8f\n", g.longitude, g.latitude);
+	//LOGFILE("position %.8f %.8f\n", g.longitude, g.latitude);
 }
 
 static void log_time(void)
@@ -131,48 +129,17 @@ static void log_time(void)
 		now = g.gmt;
 	else
 		time(&now);
-	LOGFILE("time %lu\n", now);
+	//LOGFILE("time %lu\n", now);
 }
 
 static void log_frame(char *tag, uint8_t *data)
 {
-	int i;
 
-	LOGFILE("%s", tag);
-	for (i = 0; i < 23; i++)
-		LOGFILE(" %02x", *data++);
-	LOGFILE("\n");
 }
 
 static void log_pm(void)
 {
-	int count = 0, i;
 
-	LOGFILE("[power]\n");
-	log_time();
-	log_gps();
-	for (i = 0; i <= 1023; i++) {
-		if ((pm[i].flags & INFO_FLG_PM)) {
-			if (!count)
-				LOGFILE("arfcn %d", i);
-			LOGFILE(" %d", pm[i].rxlev);
-			count++;
-			if (count == 12) {
-				LOGFILE("\n");
-				count = 0;
-			}
-		} else {
-			if (count) {
-				LOGFILE("\n");
-				count = 0;
-			}
-		}
-	}
-	if (count)
-		LOGFILE("\n");
-
-	LOGFILE("\n");
-	LOGFLUSH();
 }
 
 static void log_sysinfo(void)
@@ -185,17 +152,16 @@ static void log_sysinfo(void)
 	if (log_si.ta != 0xff)
 		sprintf(ta_str, " TA=%d", log_si.ta);
 
-	LOGP(DSUM, LOGL_INFO, "Cell: ARFCN=%d MCC=%s MNC=%s (%s, %s)%s\n",
+	printf( "Cell: ARFCN=%d MCC=%s MNC=%s (%s, %s)%s\n",
 		arfcn, gsm_print_mcc(s->mcc), gsm_print_mnc(s->mnc),
 		gsm_get_mcc(s->mcc), gsm_get_mnc(s->mcc, s->mnc), ta_str);
 
-	LOGFILE("[sysinfo]\n");
-	LOGFILE("arfcn %d\n", s->arfcn);
-	log_time();
-	log_gps();
-	LOGFILE("bsic %d,%d\n", s->bsic >> 3, s->bsic & 7);
+
+	//log_time();
+	//log_gps();
+
 	rxlev = meas->rxlev / meas->frames - 110;
-	LOGFILE("rxlev %d\n", rxlev);
+
 	if (s->si1)
 		log_frame("si1", s->si1_msg);
 	if (s->si2)
@@ -208,22 +174,18 @@ static void log_sysinfo(void)
 		log_frame("si3", s->si3_msg);
 	if (s->si4)
 		log_frame("si4", s->si4_msg);
-	if (log_si.ta != 0xff)
-		LOGFILE("ta %d\n", log_si.ta);
 
-	LOGFILE("\n");
-	LOGFLUSH();
 }
 
 static void timeout_cb(void *arg)
 {
 	switch (state) {
 	case SCAN_STATE_READ:
-		LOGP(DRR, LOGL_INFO, "Timeout reading BCCH\n");
+		printf("Timeout reading BCCH\n");
 		start_sync();
 		break;
 	case SCAN_STATE_RACH:
-		LOGP(DRR, LOGL_INFO, "Timeout on RACH\n");
+		printf("Timeout on RACH\n");
 		rach_count++;
 		start_rach();
 		break;
@@ -262,12 +224,12 @@ static void start_rach(void)
 	if (s->neci) {
 		chan_req_mask = 0x0f;
 		chan_req_val = 0x01;
-		LOGP(DRR, LOGL_INFO, "CHANNEL REQUEST: %02x "
+		printf( "CHANNEL REQUEST: %02x "
 			"(OTHER with NECI)\n", chan_req_val);
 	} else {
 		chan_req_mask = 0x1f;
 		chan_req_val = 0xe0;
-		LOGP(DRR, LOGL_INFO, "CHANNEL REQUEST: %02x (OTHER no NECI)\n",
+		printf(  "CHANNEL REQUEST: %02x (OTHER no NECI)\n",
 			chan_req_val);
 	}
 
@@ -316,18 +278,8 @@ static void start_sync(void)
 		}
 	}
 	/* if GPS becomes valid, like after exitting a tunnel */
-	if (!pm_gps_valid && g.valid) {
-		pm_gps_valid = 1;
-		geo2space(&pm_gps_x, &pm_gps_y, &pm_gps_z, g.longitude,
-			g.latitude);
-	}
-	if (pm_gps_valid && g.valid) {
-		double x, y, z;
 
-		geo2space(&x, &y, &z, g.longitude, g.latitude);
-		dist = distinspace(pm_gps_x, pm_gps_y, pm_gps_z, x, y, z);
-		sprintf(dist_str, "  dist %d", (int)dist);
-	}
+
 	if (dist > MAX_DIST || arfcn == 0xffff || rxlev < min_rxlev) {
 		memset(pm, 0, sizeof(pm));
 		pm_index = 0;
@@ -336,7 +288,7 @@ static void start_sync(void)
 		return;
 	}
 	pm[arfcn].flags |= INFO_FLG_SYNC;
-	LOGP(DSUM, LOGL_INFO, "Sync ARFCN %d (rxlev %d, %d syncs "
+	printf(  "Sync ARFCN %d (rxlev %d, %d syncs "
 		"left)%s\n", arfcn, pm[arfcn].rxlev, sync_count--, dist_str);
 	memset(&sysinfo, 0, sizeof(sysinfo));
 	sysinfo.arfcn = arfcn;
@@ -355,16 +307,16 @@ static void start_pm(void)
 	to = band_range[pm_index][1];
 
 	if (from == 0 && to == 0) {
-		LOGP(DSUM, LOGL_INFO, "Measurement done\n");
-		pm_gps_valid = g.enable && g.valid;
-		if (pm_gps_valid)
-			geo2space(&pm_gps_x, &pm_gps_y, &pm_gps_z,
-				g.longitude, g.latitude);
-		log_pm();
+		printf(  "Measurement done\n");
+		//pm_gps_valid = g.enable && g.valid;
+	//	if (pm_gps_valid)
+	//		geo2space(&pm_gps_x, &pm_gps_y, &pm_gps_z,
+	//			g.longitude, g.latitude);
+		//log_pm();
 		start_sync();
 		return;
 	}
-	LOGP(DSUM, LOGL_INFO, "Measure from %d to %d\n", from, to);
+	printf( "Measure from %d to %d\n", from, to);
 	l1ctl_tx_reset_req(ms, L1CTL_RES_T_FULL);
 	l1ctl_tx_pm_req_range(ms, from, to);
 }
@@ -402,10 +354,10 @@ static int signal_cb(unsigned int subsys, unsigned int signal,
 		log_si.flags |= INFO_FLG_SYNC;
 		log_si.ta = 0xff; /* invalid */
 		start_timer(READ_WAIT);
-		LOGP(DRR, LOGL_INFO, "Synchronized, start reading\n");
+		printf( "Synchronized, start reading\n");
 		break;
 	case S_L1CTL_FBSB_ERR:
-		LOGP(DRR, LOGL_INFO, "Sync failed\n");
+		printf( "Sync failed\n");
 		start_sync();
 		break;
 	case S_L1CTL_RESET:
@@ -425,9 +377,9 @@ static int ta_result(uint8_t ta)
 	stop_timer();
 
 	if (ta == 0xff)
-		LOGP(DSUM, LOGL_INFO, "Got assignment reject\n");
+		printf(  "Got assignment reject\n");
 	else {
-		LOGP(DSUM, LOGL_DEBUG, "Got assignment TA = %d\n", ta);
+		printf(  "Got assignment TA = %d\n", ta);
 		log_si.ta = ta;
 	}
 
@@ -449,12 +401,12 @@ static int match_ra(struct osmocom_ms *ms, struct gsm48_req_ref *ref)
 	 	ia_t3 = (ref->t3_high << 3) | ref->t3_low;
 		if (ia_t1 == rach_ref.t1 && ia_t2 == rach_ref.t2
 			 && ia_t3 == rach_ref.t3) {
-	 		LOGP(DRR, LOGL_INFO, "request %02x matches "
+			printf( "request %02x matches "
 				"(fn=%d,%d,%d)\n", ref->ra, ia_t1, ia_t2,
 					ia_t3);
 			return 1;
 		} else
-	 		LOGP(DRR, LOGL_INFO, "request %02x matches but not "
+			printf(  "request %02x matches but not "
 				"frame number (IMM.ASS fn=%d,%d,%d != RACH "
 				"fn=%d,%d,%d)\n", ref->ra, ia_t1, ia_t2, ia_t3,
 				rach_ref.t1, rach_ref.t2, rach_ref.t3);
@@ -468,10 +420,10 @@ static int imm_ass(struct osmocom_ms *ms, struct msgb *msg)
 {
 	struct gsm48_imm_ass *ia = msgb_l3(msg);
 
-	LOGP(DRR, LOGL_INFO, "IMMEDIATE ASSIGNMENT:\n");
+	printf(  "IMMEDIATE ASSIGNMENT:\n");
 
 	if (state != SCAN_STATE_RACH) {
-		LOGP(DRR, LOGL_INFO, "Not for us, no request.\n");
+		printf( "Not for us, no request.\n");
 		return 0;
 	}
 
@@ -479,7 +431,7 @@ static int imm_ass(struct osmocom_ms *ms, struct msgb *msg)
 	if (match_ra(ms, &ia->req_ref)) {
 		return ta_result(ia->timing_advance);
 	}
-	LOGP(DRR, LOGL_INFO, "Request, but not for us.\n");
+	printf( "Request, but not for us.\n");
 
 	return 0;
 }
@@ -489,10 +441,10 @@ static int imm_ass_ext(struct osmocom_ms *ms, struct msgb *msg)
 {
 	struct gsm48_imm_ass_ext *ia = msgb_l3(msg);
 
-	LOGP(DRR, LOGL_INFO, "IMMEDIATE ASSIGNMENT EXTENDED:\n");
+	printf(  "IMMEDIATE ASSIGNMENT EXTENDED:\n");
 
 	if (state != SCAN_STATE_RACH) {
-		LOGP(DRR, LOGL_INFO, "Not for us, no request.\n");
+		printf(  "Not for us, no request.\n");
 		return 0;
 	}
 
@@ -504,7 +456,7 @@ static int imm_ass_ext(struct osmocom_ms *ms, struct msgb *msg)
 	if (match_ra(ms, &ia->req_ref2)) {
 		return ta_result(ia->timing_advance2);
 	}
-	LOGP(DRR, LOGL_INFO, "Request, but not for us.\n");
+	printf(  "Request, but not for us.\n");
 
 	return 0;
 }
@@ -516,10 +468,10 @@ static int imm_ass_rej(struct osmocom_ms *ms, struct msgb *msg)
 	int i;
 	struct gsm48_req_ref *req_ref;
 
-	LOGP(DRR, LOGL_INFO, "IMMEDIATE ASSIGNMENT REJECT:\n");
+	printf(  "IMMEDIATE ASSIGNMENT REJECT:\n");
 
 	if (state != SCAN_STATE_RACH) {
-		LOGP(DRR, LOGL_INFO, "Not for us, no request.\n");
+		printf(  "Not for us, no request.\n");
 		return 0;
 	}
 
@@ -527,7 +479,7 @@ static int imm_ass_rej(struct osmocom_ms *ms, struct msgb *msg)
 		/* request reference */
 		req_ref = (struct gsm48_req_ref *)
 				(((uint8_t *)&ia->req_ref1) + i * 4);
-		LOGP(DRR, LOGL_INFO, "IMMEDIATE ASSIGNMENT REJECT "
+		printf(  "IMMEDIATE ASSIGNMENT REJECT "
 			"(ref 0x%02x)\n", req_ref->ra);
 		if (match_ra(ms, req_ref)) {
 			return ta_result(0xff);
@@ -568,23 +520,23 @@ static int new_sysinfo(void)
 
 	/* mandatory */
 	if (!s->si1 || !s->si2 || !s->si3 || !s->si4) {
-		LOGP(DRR, LOGL_INFO, "not all mandatory SI received\n");
+		printf(  "not all mandatory SI received\n");
 		return 0;
 	}
 
 	/* extended band */
 	if (s->nb_ext_ind_si2 && !s->si2bis) {
-		LOGP(DRR, LOGL_INFO, "extended ba, but si2bis not received\n");
+		printf(  "extended ba, but si2bis not received\n");
 		return 0;
 	}
 
 	/* 2ter */
 	if (s->si2ter_ind && !s->si2ter) {
-		LOGP(DRR, LOGL_INFO, "si2ter_ind, but si2ter not received\n");
+		printf(  "si2ter_ind, but si2ter not received\n");
 		return 0;
 	}
 
-	LOGP(DRR, LOGL_INFO, "Sysinfo complete\n");
+	printf( "Sysinfo complete\n");
 
 	stop_timer();
 
@@ -602,14 +554,14 @@ static int bcch(struct osmocom_ms *ms, struct msgb *msg)
 	uint8_t ccch_mode;
 
 	if (msgb_l3len(msg) != 23) {
-		LOGP(DRR, LOGL_NOTICE, "Invalid BCCH message length\n");
+		printf(  "Invalid BCCH message length\n");
 		return -EINVAL;
 	}
 	switch (sih->system_information) {
 	case GSM48_MT_RR_SYSINFO_1:
 		if (!memcmp(sih, s->si1_msg, sizeof(s->si1_msg)))
 			return 0;
-		LOGP(DRR, LOGL_INFO, "New SYSTEM INFORMATION 1\n");
+		printf("New SYSTEM INFORMATION 1\n");
 		gsm48_decode_sysinfo1(s,
 			(struct gsm48_system_information_type_1 *) sih,
 			msgb_l3len(msg));
@@ -617,7 +569,7 @@ static int bcch(struct osmocom_ms *ms, struct msgb *msg)
 	case GSM48_MT_RR_SYSINFO_2:
 		if (!memcmp(sih, s->si2_msg, sizeof(s->si2_msg)))
 			return 0;
-		LOGP(DRR, LOGL_INFO, "New SYSTEM INFORMATION 2\n");
+		printf( "New SYSTEM INFORMATION 2\n");
 		gsm48_decode_sysinfo2(s,
 			(struct gsm48_system_information_type_2 *) sih,
 			msgb_l3len(msg));
@@ -625,7 +577,7 @@ static int bcch(struct osmocom_ms *ms, struct msgb *msg)
 	case GSM48_MT_RR_SYSINFO_2bis:
 		if (!memcmp(sih, s->si2b_msg, sizeof(s->si2b_msg)))
 			return 0;
-		LOGP(DRR, LOGL_INFO, "New SYSTEM INFORMATION 2bis\n");
+		printf( "New SYSTEM INFORMATION 2bis\n");
 		gsm48_decode_sysinfo2bis(s,
 			(struct gsm48_system_information_type_2bis *) sih,
 			msgb_l3len(msg));
@@ -633,7 +585,7 @@ static int bcch(struct osmocom_ms *ms, struct msgb *msg)
 	case GSM48_MT_RR_SYSINFO_2ter:
 		if (!memcmp(sih, s->si2t_msg, sizeof(s->si2t_msg)))
 			return 0;
-		LOGP(DRR, LOGL_INFO, "New SYSTEM INFORMATION 2ter\n");
+		printf( "New SYSTEM INFORMATION 2ter\n");
 		gsm48_decode_sysinfo2ter(s,
 			(struct gsm48_system_information_type_2ter *) sih,
 			msgb_l3len(msg));
@@ -641,19 +593,19 @@ static int bcch(struct osmocom_ms *ms, struct msgb *msg)
 	case GSM48_MT_RR_SYSINFO_3:
 		if (!memcmp(sih, s->si3_msg, sizeof(s->si3_msg)))
 			return 0;
-		LOGP(DRR, LOGL_INFO, "New SYSTEM INFORMATION 3\n");
+		printf( "New SYSTEM INFORMATION 3\n");
 		gsm48_decode_sysinfo3(s,
 			(struct gsm48_system_information_type_3 *) sih,
 			msgb_l3len(msg));
 		ccch_mode = (s->ccch_conf == 1) ? CCCH_MODE_COMBINED :
 			CCCH_MODE_NON_COMBINED;
-		LOGP(DRR, LOGL_INFO, "Changing CCCH_MODE to %d\n", ccch_mode);
+		printf( "Changing CCCH_MODE to %d\n", ccch_mode);
 		l1ctl_tx_ccch_mode_req(ms, ccch_mode);
 		return new_sysinfo();
 	case GSM48_MT_RR_SYSINFO_4:
 		if (!memcmp(sih, s->si4_msg, sizeof(s->si4_msg)))
 			return 0;
-		LOGP(DRR, LOGL_INFO, "New SYSTEM INFORMATION 4\n");
+		printf( "New SYSTEM INFORMATION 4\n");
 		gsm48_decode_sysinfo4(s,
 			(struct gsm48_system_information_type_4 *) sih,
 			msgb_l3len(msg));
@@ -669,12 +621,12 @@ static int unit_data_ind(struct osmocom_ms *ms, struct msgb *msg)
 	struct tlv_parsed tv;
 	uint8_t ch_type, ch_subch, ch_ts;
 	
-	DEBUGP(DRSL, "RSLms UNIT DATA IND chan_nr=0x%02x link_id=0x%02x\n",
-		rllh->chan_nr, rllh->link_id);
+	//DEBUGP(DRSL, "RSLms UNIT DATA IND chan_nr=0x%02x link_id=0x%02x\n",
+	//	rllh->chan_nr, rllh->link_id);
 
 	rsl_tlv_parse(&tv, rllh->data, msgb_l2len(msg)-sizeof(*rllh));
 	if (!TLVP_PRESENT(&tv, RSL_IE_L3_INFO)) {
-		DEBUGP(DRSL, "UNIT_DATA_IND without L3 INFO ?!?\n");
+	//	DEBUGP(DRSL, "UNIT_DATA_IND without L3 INFO ?!?\n");
 		return -EIO;
 	}
 	msg->l3h = (uint8_t *) TLVP_VAL(&tv, RSL_IE_L3_INFO);
@@ -697,7 +649,7 @@ static int unit_data_ind(struct osmocom_ms *ms, struct msgb *msg)
 		return rx_acch(ms, msg);
 #endif
 	default:
-		LOGP(DRSL, LOGL_NOTICE, "RSL with chan_nr 0x%02x unknown.\n",
+		printf("RSL with chan_nr 0x%02x unknown.\n",
 			rllh->chan_nr);
 		return -EINVAL;
 	}
@@ -711,7 +663,7 @@ static int rcv_rll(struct osmocom_ms *ms, struct msgb *msg)
 	if (msg_type == RSL_MT_UNIT_DATA_IND) {
 		unit_data_ind(ms, msg);
 	} else
-		LOGP(DRSL, LOGL_NOTICE, "RSLms message unhandled\n");
+		printf( "RSLms message unhandled\n");
 
 	msgb_free(msg);
 
@@ -724,7 +676,7 @@ int chan_conf(struct osmocom_ms *ms, struct msgb *msg)
 	struct gsm48_req_ref *ref = (struct gsm48_req_ref *) (ch->data + 1);
 
 	if (msgb_l2len(msg) < sizeof(*ch) + sizeof(*ref)) {
-		LOGP(DRR, LOGL_ERROR, "CHAN_CNF too slort\n");
+		printf( "CHAN_CNF too slort\n");
 		return -EINVAL;
 	}
 
@@ -742,7 +694,7 @@ static int rcv_cch(struct osmocom_ms *ms, struct msgb *msg)
 	int msg_type = ch->c.msg_type;
 	int rc;
 
-	LOGP(DRSL, LOGL_INFO, "Received '%s' from layer1\n",
+	printf( "Received '%s' from layer1\n",
 		rsl_msg_name(msg_type));
 
 	if (state == SCAN_STATE_RACH && msg_type == RSL_MT_CHAN_CONF) {
@@ -751,7 +703,7 @@ static int rcv_cch(struct osmocom_ms *ms, struct msgb *msg)
 		return rc;
 	}
 
-	LOGP(DRSL, LOGL_NOTICE, "RSLms message unhandled\n");
+	printf( "RSLms message unhandled\n");
 	msgb_free(msg);
 	return 0;
 }
@@ -770,7 +722,7 @@ static int rcv_rsl(struct msgb *msg, struct lapdm_entity *le, void *l3ctx)
 		rc = rcv_cch(ms, msg);
 		break;
 	default:
-		LOGP(DRSL, LOGL_NOTICE, "unknown RSLms msg_discr 0x%02x\n",
+		printf("unknown RSLms msg_discr 0x%02x\n",
 			rslh->msg_discr);
 		msgb_free(msg);
 		rc = -EINVAL;
@@ -786,34 +738,34 @@ int scan_init(struct osmocom_ms *_ms)
 	osmo_signal_register_handler(SS_L1CTL, &signal_cb, NULL);
 	memset(&timer, 0, sizeof(timer));
 	lapdm_channel_set_l3(&ms->lapdm_channel, &rcv_rsl, ms);
-	g.enable = 1;
-	osmo_gps_init();
-	if (osmo_gps_open())
-		g.enable = 0;
+	//g.enable = 1;
+//	osmo_gps_init();
+//	if (osmo_gps_open())
+//		g.enable = 0;
 
-	if (!strcmp(logname, "-"))
-		logfp = stdout;
-	else
-		logfp = fopen(logname, "a");
-	if (!logfp) {
-		fprintf(stderr, "Failed to open logfile '%s'\n", logname);
-		scan_exit();
-		return -errno;
-	}
-	LOGP(DSUM, LOGL_INFO, "Scanner initialized\n");
+//	if (!strcmp(logname, "-"))
+//		logfp = stdout;
+//	else
+//		logfp = fopen(logname, "a");
+//	if (!logfp) {
+//		fprintf(stderr, "Failed to open //LOGFILe '%s'\n", logname);
+//		scan_exit();
+///		return -errno;
+//	}
+//	LOGP(DSUM, LOGL_INFO, "Scanner initialized\n");
 
 	return 0;
 }
 
 int scan_exit(void)
 {
-	LOGP(DSUM, LOGL_INFO, "Scanner exit\n");
-	if (g.valid)
-		osmo_gps_close();
-	if (logfp)
-		fclose(logfp);
-	osmo_signal_unregister_handler(SS_L1CTL, &signal_cb, NULL);
-	stop_timer();
+//	LOGP(DSUM, LOGL_INFO, "Scanner exit\n");
+//	if (g.valid)
+//		osmo_gps_close();
+//	/if (logfp)
+//		fclose(logfp);
+//	osmo_signal_unregister_handler(SS_L1CTL, &signal_cb, NULL);
+//	stop_timer();
 
 	return 0;
 }

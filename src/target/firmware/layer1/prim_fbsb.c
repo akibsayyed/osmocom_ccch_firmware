@@ -87,7 +87,7 @@ static struct mon_state *last_fb = &fbs.mon;
 
 static void dump_mon_state(struct mon_state *fb)
 {
-#if 0
+/*#if 0
 	printf("(%u:%u): TOA=%5u, Power=%4ddBm, Angle=%5dHz, "
 		"SNR=%04x(%d.%u) OFFSET=%u SYNCHRO=%u\n",
 		fb->fnr_report, fb->attempt, fb->toa,
@@ -98,7 +98,7 @@ static void dump_mon_state(struct mon_state *fb)
 	printf("(%u:%u): TOA=%5u, Power=%4ddBm, Angle=%5dHz\n",
 		fb->fnr_report, fb->attempt, fb->toa,
 		agc_inp_dbm8_by_pm(fb->pm)/8, ANGLE_TO_FREQ(fb->angle));
-#endif
+#endif*/
 }
 
 static int l1ctl_fbsb_resp(uint8_t res)
@@ -198,12 +198,12 @@ static int l1s_sbdet_resp(__unused uint8_t p1, uint8_t attempt,
 		return 0;
 	}
 
-	printf("SB%d ", attempt);
+	//printf("SB%d ", attempt);
 	read_sb_result(last_fb, attempt);
 
 	sb = dsp_api.db_r->a_sch[3] | dsp_api.db_r->a_sch[4] << 16;
 	fbs.mon.bsic = l1s_decode_sb(&fbs.mon.time, sb);
-	printf("=> SB 0x%08x: BSIC=%u ", sb, fbs.mon.bsic);
+	//printf("=> SB 0x%08x: BSIC=%u ", sb, fbs.mon.bsic);
 	l1s_time_dump(&fbs.mon.time);
 
 	l1s.serving_cell.bsic = fbs.mon.bsic;
@@ -228,11 +228,11 @@ static int l1s_sbdet_resp(__unused uint8_t p1, uint8_t attempt,
 	cinfo->time_alignment = qbits;
 	cinfo->arfcn = rf_arfcn;
 
-	if (last_fb->toa > bits_delta)
-		printf("=> DSP reports SB in bit that is %d bits in the "
-			"future?!?\n", last_fb->toa - bits_delta);
-	else
-		printf(" qbits=%u\n", qbits);
+	//if (last_fb->toa > bits_delta)
+	//	printf("=> DSP reports SB in bit that is %d bits in the "
+	//		"future?!?\n", last_fb->toa - bits_delta);
+	//else
+	//	printf(" qbits=%u\n", qbits);
 
 	synchronize_tdma(&l1s.serving_cell);
 
@@ -357,8 +357,8 @@ static void fbinfo2cellinfo(struct l1_cell_info *cinfo,
 	else {
 		int fb_fnr = (last_fb->fnr_report - last_fb->attempt)
 				+ last_fb->toa/BITS_PER_TDMA;
-		printf("=>FB @ FNR %u fn_offset=%d qbits=%u\n",
-			fb_fnr, fn_offset, qbits);
+	//	printf("=>FB @ FNR %u fn_offset=%d qbits=%u\n",
+	//		fb_fnr, fn_offset, qbits);
 	}
 }
 
@@ -430,7 +430,7 @@ static int l1s_fbdet_resp(__unused uint8_t p1, uint8_t attempt,
 	/* We found a frequency burst, reset everything */
 	l1s_reset_hw();
 
-	printf("FB%u ", dsp_api.ndb->d_fb_mode);
+//	printf("FB%u ", dsp_api.ndb->d_fb_mode);
 	read_fb_result(last_fb, attempt);
 
 	/* if this is the first success, save freq err */
@@ -482,11 +482,11 @@ static int l1s_fbdet_resp(__unused uint8_t p1, uint8_t attempt,
 
 			int fn_offset = l1s.current_time.fn - last_fb->attempt + ntdma;
 			int delay = fn_offset + 11 - l1s.current_time.fn - 1;
-			printf("  fn_offset=%d (fn=%u + attempt=%u + ntdma = %d)\n",
-				fn_offset, l1s.current_time.fn, last_fb->attempt, ntdma);
-			printf("  delay=%d (fn_offset=%d + 11 - fn=%u - 1\n", delay,
-				fn_offset, l1s.current_time.fn);
-			printf("  scheduling next FB/SB detection task with delay %u\n", delay);
+	//		printf("  fn_offset=%d (fn=%u + attempt=%u + ntdma = %d)\n",
+	//			fn_offset, l1s.current_time.fn, last_fb->attempt, ntdma);
+	//		printf("  delay=%d (fn_offset=%d + 11 - fn=%u - 1\n", delay,
+	//			fn_offset, l1s.current_time.fn);
+	//		printf("  scheduling next FB/SB detection task with delay %u\n", delay);
 			if (abs(last_fb->freq_diff) < fbs.req.freq_err_thresh2 &&
 			    last_fb->snr > FB1_SNR_THRESH) {
 				/* synchronize before reading SB */

@@ -91,12 +91,12 @@ static int l1s_pm_resp(uint8_t num_meas, __unused uint8_t p2,
 
 	l1ddsp_meas_read(num_meas, pm_level);
 
-	printf("PM MEAS: ARFCN=%u, %-4d dBm at baseband, %-4d dBm at RF\n",
-		arfcn, pm_level[0]/8, agc_inp_dbm8_by_pm(pm_level[0])/8);
+	//printf("PM MEAS: ARFCN=%u, %-4d dBm at baseband, %-4d dBm at RF\n",
+	///	arfcn, pm_level[0]/8, agc_inp_dbm8_by_pm(pm_level[0])/8);
 
-	printd("PM MEAS: %-4d dBm, %-4d dBm ARFCN=%u\n",
-		agc_inp_dbm8_by_pm(pm_level[0])/8,
-		agc_inp_dbm8_by_pm(pm_level[1])/8, arfcn);
+	//printd("PM MEAS: %-4d dBm, %-4d dBm ARFCN=%u\n",
+	//	agc_inp_dbm8_by_pm(pm_level[0])/8,
+	//	agc_inp_dbm8_by_pm(pm_level[1])/8, arfcn);
 
 	if (!l1s.pm.msg)
 		l1s.pm.msg = l1ctl_msgb_alloc(L1CTL_PM_CONF);

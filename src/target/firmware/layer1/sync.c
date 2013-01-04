@@ -367,7 +367,7 @@ void l1s_reset(void)
 
 	/* Leave dedicated mode */
 	l1s.dedicated.type = GSM_DCHAN_NONE;
-	puts("l1reset\n");
+	//puts("l1reset\n");
 	/* reset scheduler and hardware */
 	sched_gsmtime_reset();
 	mframe_reset();

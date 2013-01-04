@@ -4,7 +4,7 @@
 BOARDS?=compal_e88 #compal_e86 compal_e99 se_j100 gta0x pirelli_dpl10
 
 # List of all applications (meant to be overridden on command line)
-APPLICATIONS?=mob_app #rssi#loader#hello_world compal_dsp_dump layer1 loader chainload rssi
+APPLICATIONS?= cell_log#mob_app #rssi#loader#hello_world compal_dsp_dump layer1 loader chainload rssi
 
 # Framebuffer support, board specific drivers
 # 	
@@ -88,9 +88,9 @@ RF_OBJS=rf/trf6151.o
 
 
 COMMON_OBJ_PATH=/opt/test64/osmocom-bb/src/host/layer23/src/common
-COMMON_OBJ=$(COMMON_OBJ_PATH)/l1l2_interface.o $(COMMON_OBJ_PATH)/l1ctl_lapdm_glue.o $(COMMON_OBJ_PATH)/l1ctl.o 
+COMMON_OBJ=$(COMMON_OBJ_PATH)/l1l2_interface.o $(COMMON_OBJ_PATH)/l1ctl_lapdm_glue.o $(COMMON_OBJ_PATH)/l1ctl.o $(COMMON_OBJ_PATH)/sysinfo.o $(COMMON_OBJ_PATH)/networks.o 
 MISC_OBJ_PATH=/opt/test64/osmocom-bb/src/host/layer23/src/misc
-MISC_OBJ=$(MISC_OBJ_PATH)/app_ccch_scan.o  $(MISC_OBJ_PATH)/rslms.o 
+MISC_OBJ=  $(MISC_OBJ_PATH)/rslms.o  $(MISC_OBJ_PATH)/app_cell_log.o  $(MISC_OBJ_PATH)/cell_log.o# $(MISC_OBJ_PATH)/app_ccch_scan.o
 
 # Objects that go in all applications
 ANY_APP_OBJS+=$(ABB_OBJS) $(RF_OBJS) $(FLASH_OBJS)  $(COMMON_OBJ) $(MISC_OBJ)  /opt/arm_test/osmocom-bb/src/target/firmware/apps/mob_app/talloc.o
